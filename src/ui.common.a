@@ -1,0 +1,165 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; common graphics functions
+;
+
+GlobalLeftMargin
+         ; TODO other values for smaller puzzles
+         ; $0A for 7-letter puzzles
+         !byte $0A
+
+Home
+; in:    none, but assumes text screen 1 is clear (this is done at program startup)
+; out:   hi-res page 1 cleared but text screen 1 still displayed
+         bit   PAGE1
+         bit   FULLGFX
+         bit   HIRES
+         bit   TEXTMODE
+         ldx   #$20
+         stx   @erase+2
+         ldy   #$00
+         tya
+@erase   sta   $2000,y
+         iny
+         bne   @erase
+         inc   @erase+2
+         dex
+         bne   @erase
+         rts
+
+DrawThinLines
+         ldx   #$55
+         jsr   DrawThinLine
+         ldx   #$6B
+         ; /!\ execution falls through here
+DrawThinLine
+; in:    X = HGR row (0x00..0xBF)
+         lda   #$AA
+         ldy   HGRLO, x
+         sty   $FE
+         ldy   HGRHI, x
+         sty   $FF
+         ldy   GlobalLeftMargin
+         dey
+-        sta   ($FE), y
+         eor   #$7F
+         iny
+         cpy   #$1F                  ; TODO
+         bcc   -
+         rts
+
+ScrollDown
+; in:    Y = logical column to scroll
+; out:   X/Y preserved
+         stx   @x+1
+         sty   @y+1
+         ldx   #$16
+         jsr   LogicalColumnToPhysicalColumn
+         jsr   InitScrollStorage
+         jsr   WaitForVBL
+         jsr   GENSCROLLDOWN
+         jsr   UnwaitForVBL
+@x       ldx   #$FD                  ; SMC
+@y       ldy   #$FD                  ; SMC
+         rts
+
+ScrollUp
+; in:    Y = logical column to scroll
+; out:   X/Y preserved
+         stx   @x+1
+         sty   @y+1
+         ldx   #$16
+         jsr   LogicalColumnToPhysicalColumn
+         jsr   InitScrollStorage
+         jsr   WaitForVBL
+         jsr   GENSCROLLUP
+         jsr   UnwaitForVBL
+@x       ldx   #$FD                  ; SMC
+@y       ldy   #$FD                  ; SMC
+         rts
+
+InitScrollStorage
+         lda   #$00
+         sta   $FC
+         sta   $FD
+         sta   $FE
+         sta   $FF
+         rts
+
+LogicalColumnToPhysicalColumn
+; in:    Y contains logical column number
+; out:   Y contains physical byte offset to use against an HGR base address
+;        A clobbered
+;        X preserved
+         lda   GlobalLeftMargin
+         clc
+         bcc   +
+-        adc   #$03
++        dey
+         bpl   -
+         tay
+         rts
+
+EraseColumnSelectionIndicator
+; out:   preserves X/Y
+         stx   @x+1
+         sty   @y+1
+         jsr   DrawThinLines
+@x       ldx   #$FD                  ; SMC
+@y       ldy   #$FD                  ; SMC
+         rts
+
+DrawColumnSelectionIndicator
+; out:   preserves X/Y
+         stx   @x+1
+         sty   @y+1
+         ldx   #$55
+         jsr   DrawOneSelectionIndicator
+         ldx   #$6B
+         jsr   DrawOneSelectionIndicator
+@x       ldx   #$FD                  ; SMC
+@y       ldy   #$FD                  ; SMC
+         rts
+
+DrawOneSelectionIndicator
+         lda   HGRLO, x
+         sta   $FE
+         lda   HGRHI, x
+         sta   $FF
+         ldy   GlobalLeftMargin
+         dey
+         lda   #$D5
+         ldx   selected_logical_column
+         beq   +
+-        iny
+         iny
+         iny
+         eor   #$7F
+         dex
+         bne   -
++        ldx   #4
+-        sta   ($FE), y
+         eor   #$7F
+         iny
+         dex
+         bne   -
+         rts
+
+;------------------------------------------------------------------------------
+; SoftBell
+;
+; in:    none
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+SoftBell
+         ldx   #32
+-        lda   #2
+         jsr   ROM_WAIT
+         bit   SPEAKER
+         lda   #33
+         jsr   ROM_WAIT
+         bit   SPEAKER
+         dex
+         bne   -
+         rts

@@ -1,0 +1,275 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; initialize program, generate lookup tables and dynamically generated code
+;
+
+         +READ_ROM_NO_WRITE
+         sta   PRIMARYCHARSET
+         sta   CLR80VID
+         sta   STOREOFF
+         sta   READMAINMEM
+         sta   WRITEMAINMEM
+         jsr   ROM_TEXT
+         jsr   ROM_HOME
+         jsr   ROM_NORMAL
+         jsr   ROM_IN0
+         jsr   ROM_PR0
+         +BUILD_HGR_LOOKUP_TABLES HGRLO, HGRHI
+         jsr   InitScrollUp
+         jsr   InitScrollDown
+
+         ldx   #$20
+         ldy   #0
+@a       lda   FirstMover,y
+@b       sta   $4000,y
+         iny
+         bne   @a
+         inc   @a+2
+         inc   @b+2
+         dex
+         bne   @a
+         jmp   Start
+
+InitScrollUp
+         lda   #<GENSCROLLUP
+         sta   $FE
+         lda   #>GENSCROLLUP
+         sta   $FF
+         ldy   #$00
+         ldx   #$00
+@loadleft
+         inx
+         cpx   #$55
+         bne   +
+         lda   #$A5                  ; LDA/zp
+         jsr   StoreAndInc
+         lda   #$FE
+         jsr   StoreAndInc
+         jmp   @storeleft
++        cpx   #$6B
+         bne   +
+         lda   #$A5                  ; LDA/zp
+         jsr   StoreAndInc
+         lda   #$FC
+         jsr   StoreAndInc
+         jmp   @storeleft
++        lda   #$B9                  ; LDA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+@storeleft
+         dex
+         cpx   #$55
+         bne   +
+         lda   #$85                  ; STA/zp
+         jsr   StoreAndInc
+         lda   #$FE
+         jsr   StoreAndInc
+         jmp   @loadright
++        cpx   #$6B
+         bne   +
+         lda   #$85                  ; STA/zp
+         jsr   StoreAndInc
+         lda   #$FC
+         jsr   StoreAndInc
+         jmp   @loadright
++        lda   #$99                  ; STA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+@loadright
+         inx
+         cpx   #$55
+         bne   +
+         lda   #$A5                  ; LDA/zp
+         jsr   StoreAndInc
+         lda   #$FF
+         jsr   StoreAndInc
+         jmp   @storeright
++        cpx   #$6B
+         bne   +
+         lda   #$A5                  ; LDA/zp
+         jsr   StoreAndInc
+         lda   #$FD
+         jsr   StoreAndInc
+         jmp   @storeright
++        lda   #$B9                  ; LDA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         clc
+         adc   #1
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+@storeright
+         dex
+         cpx   #$55
+         bne   +
+         lda   #$85                  ; STA/zp
+         jsr   StoreAndInc
+         lda   #$FF
+         jsr   StoreAndInc
+         jmp   @next
++        cpx   #$6B
+         bne   +
+         lda   #$85                  ; STA/zp
+         jsr   StoreAndInc
+         lda   #$FD
+         jsr   StoreAndInc
+         jmp   @next
++        lda   #$99                  ; STA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         clc
+         adc   #1
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+@next
+         inx
+         cpx   #$BF
+         +LBNE @loadleft
+
+         lda   #$CA                  ; DEX
+         jsr   StoreAndInc
+         lda   #$F0                  ; BEQ
+         jsr   StoreAndInc
+         lda   #$03
+         jsr   StoreAndInc
+         lda   #$4C                  ; JMP
+         jsr   StoreAndInc
+         lda   #<GENSCROLLUP
+         jsr   StoreAndInc
+         lda   #>GENSCROLLUP
+         jsr   StoreAndInc
+         lda   #$60                  ; RTS
+         ; /!\ execution falls through here
+StoreAndInc
+         sta   ($FE), y
+         iny
+         bne   +
+         inc   $FF
++        rts
+
+InitScrollDown
+         lda   #<GENSCROLLDOWN
+         sta   $FE
+         lda   #>GENSCROLLDOWN
+         sta   $FF
+         ldy   #$00
+         ldx   #$BF
+@loadleft
+         dex
+         cpx   #$55
+         bne   +
+         lda   #$A5                  ; LDA/zp
+         jsr   StoreAndInc
+         lda   #$FE
+         jsr   StoreAndInc
+         jmp   @storeleft
++        cpx   #$6B
+         bne   +
+         lda   #$A5                  ; LDA/zp
+         jsr   StoreAndInc
+         lda   #$FC
+         jsr   StoreAndInc
+         jmp   @storeleft
++        lda   #$B9                  ; LDA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+@storeleft
+         inx
+         cpx   #$55
+         bne   +
+         lda   #$85                  ; STA/zp
+         jsr   StoreAndInc
+         lda   #$FE
+         jsr   StoreAndInc
+         jmp   @loadright
++        cpx   #$6B
+         bne   +
+         lda   #$85                  ; STA/zp
+         jsr   StoreAndInc
+         lda   #$FC
+         jsr   StoreAndInc
+         jmp   @loadright
++        lda   #$99                  ; STA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+@loadright
+         dex
+         cpx   #$55
+         bne   +
+         lda   #$A5                  ; LDA/zp
+         jsr   StoreAndInc
+         lda   #$FF
+         jsr   StoreAndInc
+         jmp   @storeright
++        cpx   #$6B
+         bne   +
+         lda   #$A5                  ; LDA/zp
+         jsr   StoreAndInc
+         lda   #$FD
+         jsr   StoreAndInc
+         jmp   @storeright
++        lda   #$B9                  ; LDA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         clc
+         adc   #1
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+@storeright
+         inx
+         cpx   #$55
+         bne   +
+         lda   #$85                  ; STA/zp
+         jsr   StoreAndInc
+         lda   #$FF
+         jsr   StoreAndInc
+         jmp   @next
++        cpx   #$6B
+         bne   +
+         lda   #$85                  ; STA/zp
+         jsr   StoreAndInc
+         lda   #$FD
+         jsr   StoreAndInc
+         jmp   @next
++        lda   #$99                  ; STA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         clc
+         adc   #1
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+@next
+         dex
+         +LBNE @loadleft
+
+         lda   #$CA                  ; DEX
+         jsr   StoreAndInc
+         lda   #$F0                  ; BEQ
+         jsr   StoreAndInc
+         lda   #$03
+         jsr   StoreAndInc
+         lda   #$4C                  ; JMP
+         jsr   StoreAndInc
+         lda   #<GENSCROLLDOWN
+         jsr   StoreAndInc
+         lda   #>GENSCROLLDOWN
+         jsr   StoreAndInc
+         lda   #$60                  ; RTS
+         jmp   StoreAndInc

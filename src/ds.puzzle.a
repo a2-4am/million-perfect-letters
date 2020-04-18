@@ -1,0 +1,256 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; data storage routines for puzzles
+;
+
+puzzle_logical_width                 ; number of letters per word (4..7)
+         !byte 0
+puzzle_logical_height                ; number of rows with letters (1..5)
+         !byte 0
+puzzle_offsets                       ; how far each column has been scrolled down from top of grid
+         !fill 8, 0
+puzzle_data                          ; character data
+         !fill 8, 0
+puzzle_data1
+         !fill 8, 0
+puzzle_data2
+         !fill 8, 0
+puzzle_data3
+         !fill 8, 0
+puzzle_data4
+         !fill 8, 0
+puzzle_data5
+         !fill 8, 0
+puzzle_data6
+         !fill 8, 0
+puzzle_data7
+         !fill 8, 0
+puzzle_data8
+         !fill 8, 0
+puzzle_word_count                    ; number of records in <puzzle_words>
+         !byte 0
+puzzle_words                         ; 32 x 8-byte records
+         !fill 256, 0                ; each record is a <puzzle_logical_width>-length word, no prefix
+
+InitPuzzle
+; in:    A = logical puzzle width (number of letters in each word, 4..7)
+         sta   puzzle_logical_width
+         lda   #0
+         sta   puzzle_logical_height
+         sta   puzzle_word_count
+         ldx   #8
+-        sta   puzzle_offsets-1, x
+         dex
+         bne   -
+-        sta   puzzle_words, x
+         inx
+         bne   -
+         rts
+
+AddLineToPuzzle
+; in:    A/Y points to <puzzle_logical_width> length character buffer (no prefix, no suffix)
+; out:   clobbers all registers
+;        clobbers $FE/$FF
+         +ST16 $FE
+         lda   puzzle_logical_height
+         asl
+         asl
+         asl
+         tax
+         ldy   #0
+-        lda   ($FE), y
+         sta   puzzle_data, x
+         inx
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         inc   puzzle_logical_height
+         rts
+
+AddTargetWordToPuzzle
+; in:    A/Y points to <puzzle_logical_width> length character buffer (no prefix, no suffix)
+         +ST16 $FE
+         lda   puzzle_word_count
+         asl
+         asl
+         asl
+         tax
+         ldy   #0
+-        lda   ($FE), y
+         sta   puzzle_words, x
+         inx
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         inc   puzzle_word_count
+         rts
+
+CheckForTargetWord
+; in:    none
+; out:   C clear if a target word was found on row 4
+;        C set if no target word found
+         +LDADDR puzzle_words
+         +ST16 $FE
+         ldx   #0                    ; word index
+@checkword
+         ldy   #0                    ; character index
+-        lda   puzzle_data4, y
+         and   #$7F                  ; letters within puzzle have high bit set if they've been used before
+         cmp   ($FE), y              ; (which is fine, and on later puzzles is guaranteed to happen eventually)
+         bne   @nextword
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         ; found matching word
+         ; set high bit on all letters in row 4
+         ldy   #0
+-        lda   puzzle_data4, y
+         ora   #$80
+         sta   puzzle_data4, y
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         clc
+         rts
+@nextword
+         lda   $FE
+         clc
+         adc   #8
+         sta   $FE
+         bcc   +
+         inc   $FF
++        inx
+         cpx   puzzle_word_count
+         bne   @checkword
+         sec
+         rts
+
+ScrollPuzzleDown
+; in:    Y = logical column to scroll
+; out:   C clear if puzzle was scrolled down
+;        C set if puzzle was already as far down as it can go
+;        preserves X/Y
+         lda   puzzle_offsets, y
+         cmp   #4
+         beq   @fail
+
+         lda   puzzle_data7, y
+         sta   puzzle_data8, y
+
+         lda   puzzle_data6, y
+         sta   puzzle_data7, y
+
+         lda   puzzle_data5, y
+         sta   puzzle_data6, y
+
+         lda   puzzle_data4, y
+         sta   puzzle_data5, y
+
+         lda   puzzle_data3, y
+         sta   puzzle_data4, y
+
+         lda   puzzle_data2, y
+         sta   puzzle_data3, y
+
+         lda   puzzle_data1, y
+         sta   puzzle_data2, y
+
+         lda   puzzle_data, y
+         sta   puzzle_data1, y
+
+         lda   #0
+         sta   puzzle_data, y
+
+         lda   puzzle_offsets, y
+         clc
+         adc   #1
+         sta   puzzle_offsets, y
+         clc
+         rts
+@fail    sec
+         rts
+
+ScrollPuzzleUp
+; in:    Y = logical column to scroll
+; out:   C clear if puzzle was scrolled up
+;        C set if puzzle was already as far up as it can go
+;        preserves X/Y
+         lda   puzzle_offsets, y
+         clc
+         adc   puzzle_logical_height
+         cmp   #5
+         beq   @fail
+
+         lda   puzzle_data1, y
+         sta   puzzle_data, y
+
+         lda   puzzle_data2, y
+         sta   puzzle_data1, y
+
+         lda   puzzle_data3, y
+         sta   puzzle_data2, y
+
+         lda   puzzle_data4, y
+         sta   puzzle_data3, y
+
+         lda   puzzle_data5, y
+         sta   puzzle_data4, y
+
+         lda   puzzle_data6, y
+         sta   puzzle_data5, y
+
+         lda   puzzle_data7, y
+         sta   puzzle_data6, y
+
+         lda   puzzle_data8, y
+         sta   puzzle_data7, y
+
+         lda   #0
+         sta   puzzle_data8, y
+
+         lda   puzzle_offsets, y
+         sec
+         sbc   #1
+         sta   puzzle_offsets, y
+         clc
+         rts
+@fail    sec
+         rts
+
+RedrawPuzzle
+         jsr   Home
+         jsr   DrawThinLines
+         +LDADDR puzzle_data
+         +ST16 $FE
+         ldx   #0                    ; logical row
+--       ldy   #0                    ; logical column
+-        lda   ($FE), y
+         jsr   DrawCharacter
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         lda   $FE
+         clc
+         adc   #8
+         sta   $FE
+         bcc   +
+         inc   $FF
++        inx
+         cpx   puzzle_logical_height
+         bne   --
+
+         bit   GFXMODE
+         rts
+
+AnimatePuzzleIntoPlace
+         ldy   #0
+--       ldx   #4
+-        jsr   ScrollPuzzleDown
+         jsr   ScrollDown
+         dex
+         bne   -
+         iny
+         cpy   #7
+         bne   --
+         rts

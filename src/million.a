@@ -1,0 +1,134 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+!cpu 6502
+!to "build/MILLION.SYSTEM",plain
+*=$2000
+
+column = $FC
+row = $FD
+
+         !source "src/constants.a"              ; no code
+         !source "src/macros.a"                 ; no code
+         !source "src/million.init.a"           ; one-time initialization code
+         !source "src/hw.vbl.init.a"
+
+FirstMover
+!pseudopc $4000 {
+Start
+         jsr   TitlePage
+         lda   #7
+         jsr   InitPuzzle
+
+         +LDADDR puzzleline1
+         jsr   AddLineToPuzzle
+         +LDADDR puzzleline2
+         jsr   AddLineToPuzzle
+         +LDADDR puzzleline3
+         jsr   AddLineToPuzzle
+
+         +LDADDR targetword1
+         jsr   AddTargetWordToPuzzle
+         +LDADDR targetword2
+         jsr   AddTargetWordToPuzzle
+         +LDADDR targetword3
+         jsr   AddTargetWordToPuzzle
+
+         lda   #0
+         sta   selected_logical_column
+         jsr   RedrawPuzzle
+         jsr   AnimatePuzzleIntoPlace
+         jsr   DrawColumnSelectionIndicator
+         bit   $c010
+         jmp   PlayEventLoop
+
+selected_logical_column
+         !byte 0
+
+PlayEventLoop
+-        lda   $c000
+         bpl   -
+         bit   $c010
+         cmp   #$8B                  ; up arrow
+         beq   EventUpArrow
+         cmp   #$8A                  ; down arrow
+         beq   EventDownArrow
+         cmp   #$88                  ; left arrow
+         beq   EventLeftArrow
+         cmp   #$95                  ; right arrow
+         beq   EventRightArrow
+         jmp   PlayEventLoop
+
+EventUpArrow
+         ldy   selected_logical_column
+         jsr   ScrollPuzzleUp
+         bcs   @fail
+         jsr   ScrollUp
+         jsr   CheckForTargetWord
+         bcc   FoundTargetWord
+         bcs   @done
+@fail    jsr   SoftBell
+@done    jmp   PlayEventLoop
+
+EventDownArrow
+         ldy   selected_logical_column
+         jsr   ScrollPuzzleDown
+         bcs   @fail
+         jsr   ScrollDown
+         jsr   CheckForTargetWord
+         bcc   FoundTargetWord
+         bcs   @done
+@fail    jsr   SoftBell
+@done    jmp   PlayEventLoop
+
+FoundTargetWord
+         ldx   #4
+         ldy   #0
+-        lda   puzzle_data4, y
+         jsr   DrawCharacter
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         jmp   PlayEventLoop
+
+EventLeftArrow
+         ldy   selected_logical_column
+         jsr   EraseColumnSelectionIndicator
+         bne   +
+         ldy   puzzle_logical_width
++        dey
+         sty   selected_logical_column
+         jsr   DrawColumnSelectionIndicator
+         jmp   PlayEventLoop
+
+EventRightArrow
+         ldy   selected_logical_column
+         jsr   EraseColumnSelectionIndicator
+         iny
+         cpy   puzzle_logical_width
+         bcc   +
+         ldy   #0
++        sty   selected_logical_column
+         jsr   DrawColumnSelectionIndicator
+         jmp   PlayEventLoop
+
+puzzleline1
+         !raw "PRTFELE"
+puzzleline2
+         !raw "MHERINS"
+puzzleline3
+         !raw "SIOTBET"
+targetword1
+         !raw "MITTENS"
+targetword2
+         !raw "PROFILE"
+targetword3
+         !raw "SHERBET"
+
+         !source "src/ds.puzzle.a"
+         !source "src/hw.vbl.a"
+         !source "src/ui.title.a"
+         !source "src/ui.common.a"
+         !source "src/ui.font.a"
+         !source "src/ui.font.data.a"
+}

@@ -1,0 +1,56 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+
+; soft switches
+KBD =          $C000      ; last key pressed (if any)
+STOREOFF =     $C000      ; STA then use the following 4 flags:
+READMAINMEM =  $C002      ; STA to read from main mem
+READAUXMEM =   $C003      ; STA to read from aux mem
+WRITEMAINMEM = $C004      ; STA to write to main mem
+WRITEAUXMEM =  $C005      ; STA to write to aux mem
+CLRC3ROM =     $C00A      ; STA to use internal Slot 3 ROM (required to use 128K and DHGR)
+SETC3ROM =     $C00B      ; STA to use external Slot 3 ROM (required to detect VidHD in slot 3)
+CLR80VID =     $C00C      ; 40 columns (also used to get out of DHGR mode)
+SET80VID =     $C00D      ; 80 columns (also used to get into DHGR mode)
+PRIMARYCHARSET= $C00E     ; no mousetext for you
+CLEARKBD =     $C010      ; clear last key pressed
+SPEAKER =      $C030      ; chirp chirp
+CLOCKCTL =     $C034      ; bits 0-3 are IIgs border color (also VidHD)
+GFXMODE =      $C050
+TEXTMODE =     $C051
+FULLGFX =      $C052
+MIXGFX =       $C053
+PAGE1 =        $C054      ; page 1 (affects text, HGR, DHGR)
+PAGE2 =        $C055      ; page 2 (affects text, HGR, DHGR)
+LORES =        $C056
+HIRES =        $C057
+
+; ROM routines and addresses
+ROM_TEXT =     $FB2F
+ROM_MACHINEID =$FBB3
+ROM_HOME =     $FC58
+ROM_WAIT =     $FCA8
+ROM_COUT =     $FDED
+ROM_NORMAL =   $FE84      ; NORMAL text (instead of INVERSE or FLASH)
+ROM_IN0 =      $FE89      ; SETKBD
+ROM_PR0 =      $FE93      ; SETVID
+
+; zero page
+PARAM        = $00        ; word (used by PARAMS_ON_STACK macro, so basically everywhere)
+PTR          = $02        ; word
+SRC          = $04        ; word
+DEST         = $06        ; word
+SAVE         = $08        ; word
+HTAB         = $24        ; byte
+VTAB         = $25        ; byte
+RNDSEED      = $4E        ; word
+
+; application constants
+original_char = $ED       ; byte
+char         = $EE        ; byte
+charrow      = $EF        ; byte
+GENSCROLLDOWN = $0800     ; 0x0900 bytes
+GENSCROLLUP  = $1100      ; 0x0900 bytes
+HGRLO        = $1A00      ; 0xC0 bytes
+HGRHI        = $1B00      ; 0xC0 bytes

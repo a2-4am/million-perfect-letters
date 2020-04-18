@@ -1,0 +1,176 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; common assembler macros (6502 compatible)
+;
+
+; .hgrlo, .hgr1hi will each be filled with $C0 bytes
+; based on routine by John Brooks
+; posted on comp.sys.apple2 on 2018-07-11
+; https://groups.google.com/d/msg/comp.sys.apple2/v2HOfHOmeNQ/zD76fJg_BAAJ
+!macro BUILD_HGR_LOOKUP_TABLES .hgrlo, .hgr1hi {
+         ldx   #0
+-        txa
+         and   #$F8
+         bpl   +
+         ora   #5
++        asl
+         bpl   +
+         ora   #5
++        asl
+         asl
+         sta   .hgrlo,x
+         txa
+         and   #7
+         rol
+         asl   .hgrlo,x
+         rol
+         ora   #$20
+         sta   .hgr1hi,x
+         inx
+         cpx   #$C0
+         bne   -
+}
+
+; for functions that take parameters on the stack
+; set (PARAM) to point to the parameters and
+; move the stack pointer to the first byte after the parameters
+; clobbers A,X,Y
+!macro   PARAMS_ON_STACK .bytes {
+         pla
+         sta   PARAM
+         clc
+         adc   #.bytes
+         tay
+         pla
+         sta   PARAM+1
+         adc   #0
+         pha
+         tya
+         pha
+}
+
+; for functions that take parameters on the stack
+; load a 16-bit value from the parameters on the stack into A (low) and Y (high)
+; (assumes PARAMS_ON_STACK was used first)
+!macro   LDPARAM .offset {
+         ldy   #.offset
+         lda   (PARAM),y
+         pha
+         iny
+         lda   (PARAM),y
+         tay
+         pla
+}
+
+; for functions that take parameters on the stack
+; load a 16-bit value from the parameters on the stack into A (low) and Y (high)
+; then store it as new source
+; (assumes PARAMS_ON_STACK was used first)
+!macro   LDPARAMPTR .offset,.dest {
+         ldy   #.offset
+         lda   (PARAM),y
+         sta   .dest
+         iny
+         lda   (PARAM),y
+         sta   .dest+1
+}
+
+; load the address of .ptr into A (low) and Y (high)
+!macro   LDADDR .ptr {
+         lda   #<.ptr
+         ldy   #>.ptr
+}
+
+; load a 16-bit value into A (low) and Y (high)
+!macro   LD16 .ptr {
+         lda   .ptr
+         ldy   .ptr+1
+}
+
+; store a 16-bit value from A (low) and Y (high)
+!macro   ST16 .ptr {
+         sta   .ptr
+         sty   .ptr+1
+}
+
+; decrement a 16-bit value in A (low) and Y (high)
+!macro   DEC16 {
+         sec
+         sbc   #1
+         bcs   +
+         dey
++
+}
+
+; increment a 16-bit value in A (low) and Y (high)
+!macro   INC16 {
+         clc
+         adc   #1
+         bne   +
+         iny
++
+}
+
+; compare a 16-bit value in A (low) and Y (high) to an absolute address
+!macro   CMP16ADDR .addr {
+         cmp   .addr
+         bne   +
+         cpy   .addr+1
++
+}
+
+; compare a 16-bit value in A (low) and Y (high) to an immediate value
+!macro   CMP16 .val {
+         cmp   #<.val
+         bne   +
+         cpy   #>.val
++
+}
+
+!macro   LBPL .target {
+         bmi   +
+         jmp   .target
++
+}
+
+!macro   LBNE .target {
+         beq   +
+         jmp   .target
++
+}
+
+!macro   LBCS .target {
+         bcc   +
+         jmp   .target
++
+}
+
+!macro   READ_ROM_NO_WRITE {
+         bit   $C082
+}
+
+; use BIT to swallow the following 1-byte opcode
+!macro   HIDE_NEXT_BYTE {
+         !byte $24
+}
+
+; use BIT to swallow the following 2-byte opcode
+!macro   HIDE_NEXT_2_BYTES {
+         !byte $2C
+}
+
+!macro   RTS_IF_KEY {
+         bit   $c000
+         bpl   +
+         rts
++
+}
+
+; debugging
+!macro   DEBUGWAIT {
+         bit   $c010
+-        bit   $c000
+         bpl   -
+         bit   $c010
+}

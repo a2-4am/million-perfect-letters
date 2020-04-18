@@ -1,0 +1,201 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; font drawing routines
+;
+
+!macro COMPUTE_DRAW_ADDRESSES {
+         ldx   charrow
+         lda   HGRLO, x
+         sta   $F0
+         sta   $F2
+         inc   $F2
+         lda   HGRHI, x
+         sta   $F1                   ; ($F0) -> base address of top row to draw (used for upper-left block of each character)
+         sta   $F3                   ; ($F2) -> base address + 1 of top row to draw (used for upper-right block of each character)
+         ldx   char                  ; X = 0-based index into LeftFontRow0 array for the character we're drawing
+         ldy   HTAB
+}
+
+!macro INC_AND_RECOMPUTE_DRAW_ADDRESSES {
+         inc   charrow
+         +COMPUTE_DRAW_ADDRESSES
+}
+
+DrawCharacter
+; A contains character (0x41..0x5A)
+; X contains logical line number (0x00..0x08)
+; Y contains logical column number (0x00..0x0C)
+; HGR row is (0x16 * X)
+;   which needs to total no more than 0xB0
+; character will be drawn on HGR row, byte offset (GlobalLeftMargin + (3 * Y))
+;   which needs to total no more than 0x26
+; preserves X/Y
+; clobbers A/all flags
+; clobbers $ED..$F7
+         sta   original_char
+         and   #$7F
+         sec
+         sbc   #$41
+         bpl   +
+         rts
++        sta   char
+         stx   @x+1
+         sty   @y+1
+         jsr   LogicalColumnToPhysicalColumn
+         sty   HTAB
+         lda   #$00
+         clc
+         bcc   +
+-        adc   #$16
++        dex
+         bpl   -
+         sta   charrow
+
+         +COMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow0, x       ; draw row 0, byte 0
+         sta   ($F0), y
+         lda   RightFontRow0, x      ; draw row 0, byte 1
+         sta   ($F2), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         bit   original_char
+         bmi   +
+         lda   LeftFontRow1, x       ; draw row 1, byte 0
+         sta   ($F0), y
+         lda   RightFontRow1, x      ; draw row 1, byte 1
+         sta   ($F2), y
+         jmp   ++
++        lda   #0
+         sta   ($F0), y
+         sta   ($F2), y
+++
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow2, x       ; draw row 2, byte 0
+         sta   ($F0), y
+         lda   RightFontRow2, x      ; draw row 2, byte 1
+         sta   ($F2), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         bit   original_char
+         bmi   +
+         lda   LeftFontRow3, x       ; draw row 3, byte 0
+         sta   ($F0), y
+         lda   RightFontRow3, x      ; draw row 3, byte 1
+         sta   ($F2), y
+         jmp   ++
++        lda   #0
+         sta   ($F0), y
+         sta   ($F2), y
+++
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow4, x       ; draw row 4, byte 0
+         sta   ($F0), y
+         lda   RightFontRow4, x      ; draw row 4, byte 1
+         sta   ($F2), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         bit   original_char
+         bmi   +
+         lda   LeftFontRow5, x       ; draw row 5, byte 0
+         sta   ($F0), y
+         lda   RightFontRow5, x      ; draw row 5, byte 1
+         sta   ($F2), y
+         jmp   ++
++        lda   #0
+         sta   ($F0), y
+         sta   ($F2), y
+++
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow6, x       ; draw row 6, byte 0
+         sta   ($F0), y
+         lda   RightFontRow6, x      ; draw row 6, byte 1
+         sta   ($F2), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         bit   original_char
+         bmi   +
+         lda   LeftFontRow7, x       ; draw row 7, byte 0
+         sta   ($F0), y
+         lda   RightFontRow7, x      ; draw row 7, byte 1
+         sta   ($F2), y
+         jmp   ++
++        lda   #0
+         sta   ($F0), y
+         sta   ($F2), y
+++
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow8, x       ; draw row 8, byte 0
+         sta   ($F0), y
+         lda   RightFontRow8, x      ; draw row 8, byte 1
+         sta   ($F2), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         bit   original_char
+         bmi   +
+         lda   LeftFontRow9, x       ; draw row 9, byte 0
+         sta   ($F0), y
+         lda   RightFontRow9, x      ; draw row 9, byte 1
+         sta   ($F2), y
+         jmp   ++
++        lda   #0
+         sta   ($F0), y
+         sta   ($F2), y
+++
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow10, x       ; draw row 10, byte 0
+         sta   ($F0), y
+         lda   RightFontRow10, x      ; draw row 10, byte 1
+         sta   ($F2), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         bit   original_char
+         bmi   +
+         lda   LeftFontRow11, x       ; draw row 11, byte 0
+         sta   ($F0), y
+         lda   RightFontRow11, x      ; draw row 11, byte 1
+         sta   ($F2), y
+         jmp   ++
++        lda   #0
+         sta   ($F0), y
+         sta   ($F2), y
+++
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow12, x       ; draw row 12, byte 0
+         sta   ($F0), y
+         lda   RightFontRow12, x      ; draw row 12, byte 1
+         sta   ($F2), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         bit   original_char
+         bmi   +
+         lda   LeftFontRow13, x       ; draw row 13, byte 0
+         sta   ($F0), y
+         lda   RightFontRow13, x      ; draw row 13, byte 1
+         sta   ($F2), y
+         jmp   ++
++        lda   #0
+         sta   ($F0), y
+         sta   ($F2), y
+++
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         lda   LeftFontRow14, x       ; draw row 14, byte 0
+         sta   ($F0), y
+         lda   RightFontRow14, x      ; draw row 14, byte 1
+         sta   ($F2), y
+
+         +INC_AND_RECOMPUTE_DRAW_ADDRESSES
+         bit   original_char
+         bmi   +
+         lda   LeftFontRow15, x       ; draw row 15, byte 0
+         sta   ($F0), y
+         lda   RightFontRow15, x      ; draw row 15, byte 1
+         sta   ($F2), y
+         jmp   ++
++        lda   #0
+         sta   ($F0), y
+         sta   ($F2), y
+++
+@x       ldx   #$FD                   ; SMC
+@y       ldy   #$FD                   ; SMC
+         rts
