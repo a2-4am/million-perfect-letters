@@ -126,6 +126,15 @@ CheckForTargetWord
          sec
          rts
 
+FindLetterInColumn
+; in:    A = letter (0x41..0x5A)
+;        Y = logical column to search
+; out:   C clear if letter was found in given column
+;        C set if letter was not found
+;        TODO maybe calculate how far to scroll and return that?
+         sec
+         rts
+
 ScrollPuzzleDown
 ; in:    Y = logical column to scroll
 ; out:   C clear if puzzle was scrolled down

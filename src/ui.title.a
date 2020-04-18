@@ -1,4 +1,153 @@
+;license:MIT
+;(c) 2019 by qkumba
+;(c) 2020 by 4am
+;
+
+titlechar = $FD
+titleline1
+         !raw "MILLION"
+titleline2
+         !raw "PERFECT"
+titleline3
+         !raw "LETTERS"
+
 TitlePage
+         jsr   Home
+         bit   GFXMODE
+         lda   #$00
+         sta   GlobalLeftMargin
+         lda   #$41
+
+@outerloop
+         sta   titlechar
+
+         ; init RNG
+         ldy   #1
+         sty   @rnd1+1
+         dey
+         sty   @rnd2+1
+         ; iterate
+
+@loop
+         ldy   @rnd1+1
+         ldx   @rnd2+1
+         lsr   @rnd2+1
+         ror   @rnd1+1
+         bcc   +
+
+         ; feedback polynomial form #$0041 for period of 127
+
+         lda   @rnd1+1
+         eor   #$41
+         sta   @rnd1+1
+         ;lda   @rnd2+1
+         ;eor   #$00
+         ;sta   @rnd2+1
++
+         cpy   #$76
+         bcs   @loop
+         ldx   #0
+         dey
+         tya
+-        cmp   #$0D
+         bcc   +
+         inx
+         sec
+         sbc   #$0D
+         bne   -
++        tay
+         cpy   #$03
+         bcc   @random
+         cpy   #$0A
+         bcs   @random
+         cpx   #$03
+         beq   @line1
+         cpx   #$04
+         beq   @line2
+         cpx   #$05
+         beq   @line3
+@random  lda   titlechar
+         jmp   +                     ; can't use a BNE because <titlechar> will actually be 0 the third time around
+@line1   lda   titleline1-3, y
+         bne   +
+@line2   lda   titleline2-3, y
+         bne   +
+@line3   lda   titleline3-3, y
++        jsr   DrawCharacter
+         lda   titlechar
+         beq   +
+         inc   titlechar
+         lda   titlechar
+         and   #$7F
+         cmp   #$5B
+         bcc   +
+         lda   titlechar
+         sbc   #$19
+         sta   titlechar
++
+         ; wait while checking for keypress
+
+         lda   #$38
+         jsr   WaitForKeyWithTimeout
+         bmi   @prematureexit
+
+         ; exit condition
+
+@rnd2    lda   #0                    ; SMC
+;         bne   @loop
+@rnd1    lda   #0                    ; SMC
+         cmp   #1
+         bne   @loop
+
+         ldx   #3
+-        lda   #$00
+         jsr   WaitForKeyWithTimeout
+         bmi   @prematureexit
+         dex
+         bne   -
+
+         lda   titlechar
+         beq   @phase2
+         lda   #$C1
+         bit   titlechar
+         +LBPL @outerloop
+         lda   #$00
+         jmp   @outerloop
+
+@prematureexit
+         jsr   Home
+         bit   GFXMODE
+@exit
+         +DEBUGWAIT
+         rts
+@phase2
+         ldy   #$03
+--       ldx   #$03
+-        jsr   ScrollUp
+         dex
+         bne   -
+         iny
+         cpy   #$0A
+         bne   --
+         beq   @exit                 ; always branches
+
+WaitForKeyWithTimeout
+; in:    A = timeout length (like standard $FCA8 wait routine)
+; out:   A clobbered
+;        X/Y preserved
+         sec
+@wait1   pha
+@wait2   sbc   #1
+         bne   @wait2
+         pla
+         bit   $C000
+         bmi   @exit
+         sbc   #1
+         bne   @wait1
+@exit    rts
+
+
+OldTitlePage
          jsr   Home
          ;TODO add logical-width parameter
          jsr   DrawThinLines

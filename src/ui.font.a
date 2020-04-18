@@ -23,7 +23,7 @@
 }
 
 DrawCharacter
-; A contains character (0x41..0x5A)
+; A contains character (0x41..0x5A) or 0x00
 ; X contains logical line number (0x00..0x08)
 ; Y contains logical column number (0x00..0x0C)
 ; HGR row is (0x16 * X)
@@ -34,9 +34,10 @@ DrawCharacter
 ; clobbers A/all flags
 ; clobbers $ED..$F7
          sta   original_char
+         beq   +
          and   #$7F
          sec
-         sbc   #$41
+         sbc   #$40
          bpl   +
          rts
 +        sta   char

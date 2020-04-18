@@ -16,7 +16,10 @@ row = $FD
 FirstMover
 !pseudopc $4000 {
 Start
+         +DEBUGWAIT
          jsr   TitlePage
+         lda   #$0A
+         sta   GlobalLeftMargin
          lda   #7
          jsr   InitPuzzle
 
@@ -49,15 +52,24 @@ PlayEventLoop
 -        lda   $c000
          bpl   -
          bit   $c010
-         cmp   #$8B                  ; up arrow
+         and   #$7F
+         cmp   #$0B                  ; up arrow
          beq   EventUpArrow
-         cmp   #$8A                  ; down arrow
+         cmp   #$0A                  ; down arrow
          beq   EventDownArrow
-         cmp   #$88                  ; left arrow
+         cmp   #$08                  ; left arrow
          beq   EventLeftArrow
-         cmp   #$95                  ; right arrow
+         cmp   #$15                  ; right arrow
          beq   EventRightArrow
-         jmp   PlayEventLoop
+         cmp   #$61
+         bcc   +
+         and   #$DF
++        cmp   #$41
+         bcc   +
+         cmp   #$5B
+         bcs   +
+         jsr   EventLetter
++        jmp   PlayEventLoop
 
 EventUpArrow
          ldy   selected_logical_column
@@ -111,6 +123,13 @@ EventRightArrow
 +        sty   selected_logical_column
          jsr   DrawColumnSelectionIndicator
          jmp   PlayEventLoop
+
+EventLetter
+         ldy   selected_logical_column
+         jsr   FindLetterInColumn
+         bcs   @exit
+         ; TODO
+@exit    rts
 
 puzzleline1
          !raw "PRTFELE"
