@@ -167,6 +167,15 @@
 +
 }
 
+!macro   PRINT_AT .str, .vtab, .htab {
+         lda   #.vtab
+         sta   VTAB
+         lda   #.htab
+         sta   HTAB
+         +LDADDR .str
+         jsr   DrawHeavySilkString
+}
+
 ; debugging
 !macro   DEBUGWAIT {
          bit   $c010

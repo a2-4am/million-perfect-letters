@@ -22,7 +22,7 @@
          +COMPUTE_DRAW_ADDRESSES
 }
 
-DrawCharacter
+DrawLargeCharacter
 ; A contains character (0x41..0x5A) or 0x00
 ; X contains logical line number (0x00..0x08)
 ; Y contains logical column number (0x00..0x0C)

@@ -13,10 +13,9 @@ titleline3
 
 TitlePage
          jsr   Home
-         bit   GFXMODE
-         lda   #$00
+         lda   #$01
          sta   GlobalLeftMargin
-         lda   #$41
+         lda   #$41                  ; 'A'
 
 @outerloop
          sta   titlechar
@@ -73,7 +72,7 @@ TitlePage
 @line2   lda   titleline2-3, y
          bne   +
 @line3   lda   titleline3-3, y
-+        jsr   DrawCharacter
++        jsr   DrawLargeCharacter
          lda   titlechar
          beq   +
          inc   titlechar
@@ -108,7 +107,7 @@ TitlePage
 
          lda   titlechar
          beq   @phase2
-         lda   #$C1
+         lda   #$C1                  ; 'A' with high bit
          bit   titlechar
          +LBPL @outerloop
          lda   #$00
@@ -117,12 +116,17 @@ TitlePage
 @prematureexit
          jsr   Home
          bit   GFXMODE
+         ;TODO
 @exit
-         +DEBUGWAIT
+         +PRINT_AT asterisk, 2, 30
+         +PRINT_AT menuline1, 13, 10
+         +PRINT_AT menuline2, 14, 10
+         +PRINT_AT menuline3, 15, 10
+         +PRINT_AT disclaimer, 23, 0
          rts
 @phase2
          ldy   #$03
---       ldx   #$03
+--       ldx   #$02
 -        jsr   ScrollUp
          dex
          bne   -
@@ -146,134 +150,18 @@ WaitForKeyWithTimeout
          bne   @wait1
 @exit    rts
 
-
-OldTitlePage
-         jsr   Home
-         ;TODO add logical-width parameter
-         jsr   DrawThinLines
-
-         lda   #3
-         sta   row
-         +LDADDR title
-         +ST16 $FE
---       lda   #6
-         sta   column
--        ldy   column
-         lda   ($FE), y
-         ldx   row
-         jsr   DrawCharacter
-         dec   column
-         bpl   -
-         lda   $FE
-         clc
-         adc   #7
-         sta   $FE
-         bcc   +
-         inc   $FF
-+        inc   row
-         lda   row
-         cmp   #6
-         bne   --
-
-         bit   GFXMODE
-
-         lda   #$00
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-
-         ldy   #$00
-         jsr   ScrollUp
-         ldy   #$02
-         jsr   ScrollDown
-         iny
-         jsr   ScrollUp
-         ldy   #$05
-         jsr   ScrollDown
-         iny
-         jsr   ScrollUp
-
-@loop
-         +RTS_IF_KEY
-         lda   #$00
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-
-         ldy   #$00
-         jsr   ScrollDown
-         jsr   ScrollDown
-         iny
-         jsr   ScrollDown
-         iny
-         jsr   ScrollUp
-         iny
-         jsr   ScrollDown
-         iny
-         jsr   ScrollDown
-         iny
-         jsr   ScrollUp
-         iny
-         jsr   ScrollDown
-         jsr   ScrollDown
-
-         +RTS_IF_KEY
-         lda   #$00
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-
-         ldy   #$00
-         jsr   ScrollUp
-         ldy   #$02
-         jsr   ScrollUp
-         iny
-         jsr   ScrollDown
-         ldy   #$05
-         jsr   ScrollUp
-         iny
-         jsr   ScrollUp
-
-         +RTS_IF_KEY
-         lda   #$00
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-         jsr   ROM_WAIT
-         +RTS_IF_KEY
-         rts
-!if 0 {
-         ldy   #$00
-         jsr   ScrollUp
-         iny
-         jsr   ScrollUp
-         iny
-         jsr   ScrollDown
-         jsr   ScrollDown
-         iny
-         jsr   ScrollUp
-         jsr   ScrollUp
-         iny
-         jsr   ScrollUp
-         iny
-         jsr   ScrollDown
-         jsr   ScrollDown
-         iny
-         jsr   ScrollUp
-
-         jmp   @loop
-}
-title
-         !raw  "PELTEOT"
-         !raw  "LIRFICS"
-         !raw  "M TL RN"
+asterisk
+         !byte 1
+         !byte "*"
+menuline1
+         !byte 20
+         !raw  "RETURN.....PLAY GAME"
+menuline2
+         !byte 21
+         !raw  "CTRL-S.....SOUND (ON)"
+menuline3
+         !byte 15
+         !raw  "CTRL-Q.....QUIT"
+disclaimer
+         !byte 40
+         !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."

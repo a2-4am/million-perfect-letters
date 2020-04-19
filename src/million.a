@@ -16,8 +16,10 @@ row = $FD
 FirstMover
 !pseudopc $4000 {
 Start
-         +DEBUGWAIT
          jsr   TitlePage
+
+         +DEBUGWAIT
+
          lda   #$0A
          sta   GlobalLeftMargin
          lda   #7
@@ -97,7 +99,7 @@ FoundTargetWord
          ldx   #4
          ldy   #0
 -        lda   puzzle_data4, y
-         jsr   DrawCharacter
+         jsr   DrawLargeCharacter
          iny
          cpy   puzzle_logical_width
          bne   -
@@ -144,10 +146,12 @@ targetword2
 targetword3
          !raw "SHERBET"
 
-         !source "src/ds.puzzle.a"
+         !source "src/puzzle.a"
          !source "src/hw.vbl.a"
          !source "src/ui.title.a"
          !source "src/ui.common.a"
-         !source "src/ui.font.a"
-         !source "src/ui.font.data.a"
+         !source "src/ui.font.courier.double.prime.a"
+         !source "src/ui.font.courier.double.prime.data.a"
+         !source "src/ui.font.heavy.silk.a"
+         !source "src/ui.font.heavy.silk.data.a"
 }

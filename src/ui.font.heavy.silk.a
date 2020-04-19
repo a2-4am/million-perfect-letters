@@ -1,0 +1,93 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; font drawing routines for Heavy Silk pixel font
+;
+
+DrawHeavySilkString
+; A/Y contains address of length-prefixed string (length 1..40, characters 0x20..0x5A only)
+; $24 (HTAB) contains starting column (0..39)
+; $25 (VTAB) contains textpage line (0..23)
+; all characters are drawn on the same line
+; HTAB is incremented for each character
+; clobbers A/X/Y
+; clobbers $FE/$FF
+         +ST16 $FE
+         ldy   #0
+         lda   ($FE),y
+         tax
+         inc   $FE
+         bne   +
+         inc   $FF
++
+         +LD16 $FE
+         ; /!\ execution falls through here to DrawHeavySilk
+
+DrawHeavySilkBuffer
+; A/Y contains address of character buffer (characters 0x20..0x5A only)
+; X contains buffer length (1..40)
+; $24 (HTAB) contains starting column (0..39)
+; $25 (VTAB) contains textpage line (0..23)
+; all characters are drawn on the same line
+; HTAB is incremented for each character
+; VTAB is NOT incremented
+; clobbers A/X/Y
+         +ST16 DBISrc+1
+         dex
+         lda   VTAB
+         asl
+         asl
+         asl
+         tay
+         lda   HGRLO, y
+         sta   @hgrlo+1
+         lda   HGRHI, y
+         clc
+         sta   DBIRow0+2
+         adc   #$04
+         sta   DBIRow1+2
+         adc   #$04
+         sta   DBIRow2+2
+         adc   #$04
+         sta   DBIRow3+2
+         adc   #$04
+         sta   DBIRow4+2
+         adc   #$04
+         sta   DBIRow5+2
+         adc   #$04
+         sta   DBIRow6+2
+         adc   #$04
+         sta   DBIRow7+2
+@hgrlo   lda   #$FD
+         clc
+         adc   HTAB
+         sta   DBIRow0+1
+         sta   DBIRow1+1
+         sta   DBIRow2+1
+         sta   DBIRow3+1
+         sta   DBIRow4+1
+         sta   DBIRow5+1
+         sta   DBIRow6+1
+         sta   DBIRow7+1
+DBILoop
+DBISrc   ldy   $FDFD,x
+         lda   HeavySilkRow0-$20,y
+DBIRow0  sta   $FDFD,x
+         lda   HeavySilkRow1-$20,y
+DBIRow1  sta   $FDFD,x
+         lda   HeavySilkRow2-$20,y
+DBIRow2  sta   $FDFD,x
+         lda   HeavySilkRow3-$20,y
+DBIRow3  sta   $FDFD,x
+         lda   HeavySilkRow4-$20,y
+DBIRow4  sta   $FDFD,x
+         lda   HeavySilkRow5-$20,y
+DBIRow5  sta   $FDFD,x
+         lda   HeavySilkRow6-$20,y
+DBIRow6  sta   $FDFD,x
+         lda   HeavySilkRow7-$20,y
+DBIRow7  sta   $FDFD,x
+         inc   HTAB
+         dex
+         bpl   DBILoop
+         rts

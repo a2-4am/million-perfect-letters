@@ -229,13 +229,14 @@ ScrollPuzzleUp
 
 RedrawPuzzle
          jsr   Home
+         bit   TEXTMODE
          jsr   DrawThinLines
          +LDADDR puzzle_data
          +ST16 $FE
          ldx   #0                    ; logical row
 --       ldy   #0                    ; logical column
 -        lda   ($FE), y
-         jsr   DrawCharacter
+         jsr   DrawLargeCharacter
          iny
          cpy   puzzle_logical_width
          bne   -
