@@ -2,13 +2,25 @@
 ;(c) 2019 by qkumba
 ;(c) 2020 by 4am
 ;
+; animated title screen
+;
+; Public functions:
+; - TitlePage
+;
+; Public variables:
+; - titleline1
+; - titleline2
+; - titleline3
 
 titlechar = $FD
 titleline1
+         !byte 7
          !raw "MILLION"
 titleline2
+         !byte 7
          !raw "PERFECT"
 titleline3
+         !byte 7
          !raw "LETTERS"
 
 TitlePage
@@ -67,11 +79,11 @@ TitlePage
          beq   @line3
 @random  lda   titlechar
          jmp   +                     ; can't use a BNE because <titlechar> will actually be 0 the third time around
-@line1   lda   titleline1-3, y
+@line1   lda   titleline1-2, y
          bne   +
-@line2   lda   titleline2-3, y
+@line2   lda   titleline2-2, y
          bne   +
-@line3   lda   titleline3-3, y
+@line3   lda   titleline3-2, y
 +        jsr   DrawLargeCharacter
          lda   titlechar
          beq   +
@@ -114,15 +126,10 @@ TitlePage
          jmp   @outerloop
 
 @prematureexit
-         jsr   Home
-         bit   GFXMODE
-         ;TODO
+         sec
+         +HIDE_NEXT_BYTE
 @exit
-         +PRINT_AT asterisk, 2, 30
-         +PRINT_AT menuline1, 13, 10
-         +PRINT_AT menuline2, 14, 10
-         +PRINT_AT menuline3, 15, 10
-         +PRINT_AT disclaimer, 23, 0
+         clc
          rts
 @phase2
          ldy   #$03
@@ -134,34 +141,3 @@ TitlePage
          cpy   #$0A
          bne   --
          beq   @exit                 ; always branches
-
-WaitForKeyWithTimeout
-; in:    A = timeout length (like standard $FCA8 wait routine)
-; out:   A clobbered
-;        X/Y preserved
-         sec
-@wait1   pha
-@wait2   sbc   #1
-         bne   @wait2
-         pla
-         bit   $C000
-         bmi   @exit
-         sbc   #1
-         bne   @wait1
-@exit    rts
-
-asterisk
-         !byte 1
-         !byte "*"
-menuline1
-         !byte 20
-         !raw  "RETURN.....PLAY GAME"
-menuline2
-         !byte 21
-         !raw  "CTRL-S.....SOUND (ON)"
-menuline3
-         !byte 15
-         !raw  "CTRL-Q.....QUIT"
-disclaimer
-         !byte 40
-         !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."

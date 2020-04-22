@@ -32,50 +32,6 @@
          bne   -
 }
 
-; for functions that take parameters on the stack
-; set (PARAM) to point to the parameters and
-; move the stack pointer to the first byte after the parameters
-; clobbers A,X,Y
-!macro   PARAMS_ON_STACK .bytes {
-         pla
-         sta   PARAM
-         clc
-         adc   #.bytes
-         tay
-         pla
-         sta   PARAM+1
-         adc   #0
-         pha
-         tya
-         pha
-}
-
-; for functions that take parameters on the stack
-; load a 16-bit value from the parameters on the stack into A (low) and Y (high)
-; (assumes PARAMS_ON_STACK was used first)
-!macro   LDPARAM .offset {
-         ldy   #.offset
-         lda   (PARAM),y
-         pha
-         iny
-         lda   (PARAM),y
-         tay
-         pla
-}
-
-; for functions that take parameters on the stack
-; load a 16-bit value from the parameters on the stack into A (low) and Y (high)
-; then store it as new source
-; (assumes PARAMS_ON_STACK was used first)
-!macro   LDPARAMPTR .offset,.dest {
-         ldy   #.offset
-         lda   (PARAM),y
-         sta   .dest
-         iny
-         lda   (PARAM),y
-         sta   .dest+1
-}
-
 ; load the address of .ptr into A (low) and Y (high)
 !macro   LDADDR .ptr {
          lda   #<.ptr

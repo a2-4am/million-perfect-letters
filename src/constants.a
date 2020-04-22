@@ -37,14 +37,14 @@ ROM_IN0 =      $FE89      ; SETKBD
 ROM_PR0 =      $FE93      ; SETVID
 
 ; zero page
-PARAM        = $00        ; word (used by PARAMS_ON_STACK macro, so basically everywhere)
-PTR          = $02        ; word
-SRC          = $04        ; word
-DEST         = $06        ; word
-SAVE         = $08        ; word
+;PARAM        = $00        ; word (used by PARAMS_ON_STACK macro, so basically everywhere)
+;PTR          = $02        ; word
+;SRC          = $04        ; word
+;DEST         = $06        ; word
+;SAVE         = $08        ; word
 HTAB         = $24        ; byte
 VTAB         = $25        ; byte
-RNDSEED      = $4E        ; word
+;RNDSEED      = $4E        ; word
 
 ; application constants
 original_char = $ED       ; byte

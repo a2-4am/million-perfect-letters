@@ -1,0 +1,223 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; main menu
+;
+; Public functions:
+; - MainMenu
+;
+
+MainMenu
+; in:    C clear if screen is already cleared and title is already drawn
+;          (will happen if animated title screen runs to completion)
+;        C set if full screen clear & redraw is required
+;          (will happen if key is pressed during title screen, or
+;          if user returns to main menu from play or any other screen)
+; out:   TODO
+         bcc   @noredraw
+         jsr   Home
+         ldy   #3
+-        ldx   #1
+         lda   titleline1-2, y
+         jsr   DrawLargeCharacter
+         inx
+         lda   titleline2-2, y
+         jsr   DrawLargeCharacter
+         inx
+         lda   titleline3-2, y
+         jsr   DrawLargeCharacter
+         iny
+         cpy   #$0A
+         bne   -
+@noredraw
+         +PRINT_AT asterisk, 2, 30
+         +PRINT_AT menuline_play, 13, 10
+         +PRINT_AT menuline_demo, 14, 10
+         +PRINT_AT menuline_sound, 15, 10
+         +PRINT_AT menuline_quit, 16, 10
+         +PRINT_AT disclaimer, 23, 0
+
+         bit   CLEARKBD
+-        lda   KBD
+         bpl   -
+         bit   CLEARKBD
+         and   #$7F
+         cmp   #$0D                  ; Return
+         beq   @eventSelectLevel
+         jsr   SoftBell
+         jmp   -
+@eventSelectLevel
+         jsr   SelectLevel
+         bcs   @noselection
+         rts                         ; return to caller with A = level ID
+@noselection
+         jmp   MainMenu              ; C is already set so this will do a full redraw
+
+counter = $F2
+selectedlevel = $F3
+
+SelectLevel
+; in:    none
+; out:   C clear if level was selected, and
+;          A = 0-based level ID
+;        C set if no level was selected and A is undefined
+         jsr   Home
+
+         +LDADDR leveldescriptions   ; TODO update level descriptions with % complete
+         +ST16 $FE
+         lda   #0
+         sta   counter
+         sta   selectedlevel         ; TODO set selected level from prefs
+         lda   #6
+         sta   VTAB
+-        lda   #10
+         sta   HTAB
+         +LD16 $FE
+         ldx   counter
+         cpx   selectedlevel
+         beq   +
+         ldx   #20
+         jsr   DrawHeavySilkBuffer
+         jmp   ++
++        ldx   #20
+         jsr   DrawHeavySilkBufferInverse
+++       inc   VTAB
+         lda   $FE
+         clc
+         adc   #20
+         sta   $FE
+         bcc   +
+         inc   $FF
++        inc   counter
+         lda   counter
+         cmp   #12
+         bcc   -
+
+         +PRINT_AT levelhelp, 23, 0
+
+         bit   CLEARKBD
+@selectLevelLoop
+         lda   KBD
+         bpl   @selectLevelLoop
+         bit   CLEARKBD
+         and   #$7F
+         cmp   #$0B                  ; up arrow
+         beq   @eventUpArrow
+         cmp   #$0A                  ; down arrow
+         beq   @eventDownArrow
+         cmp   #$08                  ; left arrow
+         beq   @eventLeftArrow
+         cmp   #$15                  ; right arrow
+         beq   @eventRightArrow
+         cmp   #$0D
+         beq   @eventReturn
+         cmp   #$1B
+         beq   @eventEsc
+         rts
+@eventReturn
+         lda   selectedlevel
+         clc
+         rts
+@eventEsc
+         sec
+         rts
+@eventLeftArrow
+@eventUpArrow
+         jsr   RedrawPreviouslySelectedLevel
+         ldx   selectedlevel
+         bne   +
+         ldx   #12
++        dex
+         stx   selectedlevel
+         jsr   DrawNewlySelectedLevel
+         jmp   @selectLevelLoop
+@eventRightArrow
+@eventDownArrow
+         jsr   RedrawPreviouslySelectedLevel
+         ldx   selectedlevel
+         cpx   #11
+         bne   +
+         ldx   #$FF
++        inx
+         stx   selectedlevel
+         jsr   DrawNewlySelectedLevel
+         jmp   @selectLevelLoop
+
+RedrawPreviouslySelectedLevel
+         lda   selectedlevel
+         tax
+         clc
+         adc   #6
+         sta   VTAB
+         lda   #10
+         sta   HTAB
+         jsr   GetLevelDescription
+         +LD16 $FE
+         ldx   #20
+         jmp   DrawHeavySilkBuffer
+
+DrawNewlySelectedLevel
+         lda   selectedlevel
+         tax
+         clc
+         adc   #6
+         sta   VTAB
+         lda   #10
+         sta   HTAB
+         jsr   GetLevelDescription
+         +LD16 $FE
+         ldx   #20
+         jmp   DrawHeavySilkBufferInverse
+
+GetLevelDescription
+; in:    X = 0-based level ID
+; out:   $FE/$FF points to level description buffer
+         +LDADDR leveldescriptions
+         +ST16 $FE
+         jmp   +
+-        lda   $FE
+         clc
+         adc   #20
+         sta   $FE
+         bcc   +
+         inc   $FF
++        dex
+         bpl   -
+         rts
+
+asterisk
+         !byte 1
+         !byte "*"
+menuline_play
+         !byte 20
+         !raw  "RETURN.....PLAY GAME"
+menuline_demo
+         !byte 20
+         !raw  "CTRL-D.....DEMO MODE"
+menuline_sound
+         !byte 21
+         !raw  "CTRL-S.....SOUND (ON)"
+menuline_quit
+         !byte 15
+         !raw  "CTRL-Q.....QUIT"
+disclaimer
+         !byte 40
+         !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."
+
+leveldescriptions
+         !raw " 4X3, EASY       0% "
+         !raw " 5X3, BASIC      0% "
+         !raw " 6X3, SIMPLE     0% "
+         !raw " 7X3, RELAXED    0% "
+         !raw " 4X4, FAIR       0% "
+         !raw " 5X4, QUICK      0% "
+         !raw " 6X4, MEDIUM     0% "
+         !raw " 7X4, AVERAGE    0% "
+         !raw " 4X5, HARD       0% "
+         !raw " 5X5, TOUGH      0% "
+         !raw " 6X5, TRICKY     0% "
+         !raw " 7X5, COMPLEX    0% "
+
+levelhelp
+         !byte 40
+         !raw "ARROWS TO SELECT, RETURN TO PLAY, OR ESC"

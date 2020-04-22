@@ -29,6 +29,21 @@ Home
          bit   GFXMODE
          rts
 
+WaitForKeyWithTimeout
+; in:    A = timeout length (like standard $FCA8 wait routine)
+; out:   A clobbered
+;        X/Y preserved
+         sec
+@wait1   pha
+@wait2   sbc   #1
+         bne   @wait2
+         pla
+         bit   $C000
+         bmi   @exit
+         sbc   #1
+         bne   @wait1
+@exit    rts
+
 DrawThinLines
          ldx   #$55
          jsr   DrawThinLine
