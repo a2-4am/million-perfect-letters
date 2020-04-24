@@ -13,7 +13,9 @@ MainMenu
 ;        C set if full screen clear & redraw is required
 ;          (will happen if key is pressed during title screen, or
 ;          if user returns to main menu from play or any other screen)
-; out:   TODO
+; out:   C clear if user selected a level to play, and
+;          A = level ID
+;        C set if user selected quit
          bcc   @noredraw
          jsr   Home
          ldy   #3
@@ -43,15 +45,20 @@ MainMenu
          bit   CLEARKBD
          and   #$7F
          cmp   #$0D                  ; Return
-         beq   @eventSelectLevel
+         beq   @eventReturn
+         cmp   #$1B                  ; Esc
+         beq   @eventEsc
          jsr   SoftBell
          jmp   -
-@eventSelectLevel
+@eventReturn
          jsr   SelectLevel
          bcs   @noselection
          rts                         ; return to caller with A = level ID
 @noselection
          jmp   MainMenu              ; C is already set so this will do a full redraw
+@eventEsc
+         sec
+         rts
 
 counter = $F2
 selectedlevel = $F3
@@ -199,7 +206,7 @@ menuline_sound
          !raw  "CTRL-S.....SOUND (ON)"
 menuline_quit
          !byte 15
-         !raw  "CTRL-Q.....QUIT"
+         !raw  "   ESC.....QUIT"
 disclaimer
          !byte 40
          !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."

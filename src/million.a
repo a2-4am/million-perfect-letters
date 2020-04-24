@@ -19,6 +19,12 @@ Start
          jsr   TitlePage
          ; C set if title sequence ended prematurely (i.e. main menu requires full redraw)
          jsr   MainMenu
+         bcc   @play
+         jsr   $BF00
+         !byte $65
+         !word +
++        !byte 4,0,0,0,0,0,0
+@play
          ; A = level ID
          ; TODO load appropriate level data from disk
          lda   #$0A
