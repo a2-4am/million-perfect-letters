@@ -49,10 +49,6 @@ Start
          sec
          bcs   -                     ; always branches
 
-guide
-         !byte 40
-         !raw "0123456789012345678901234567890123456789"
-
          !source "src/puzzle.a"
          !source "src/hw.vbl.a"
          !source "src/hw.storage.a"
