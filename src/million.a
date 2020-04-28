@@ -41,10 +41,6 @@ Start
          jsr   RedrawPuzzle
          jsr   AnimatePuzzleIntoPlace
          jsr   DrawColumnSelectionIndicator
-;         +PRINT_AT guide, 0, 0
-;         +PRINT_AT titleline2, 1, 0
-;         +PRINT_AT titleline3, 2, 0
-;         +PRINT_AT levelline, 4, 0
          jsr   PlayEventLoop
          sec
          bcs   -                     ; always branches
