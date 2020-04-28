@@ -4,36 +4,24 @@
 ; data storage routines for puzzles
 ;
 
-puzzle_logical_width                 ; number of letters per word (4..7)
-         !byte 0
-puzzle_logical_height                ; number of rows with letters (1..5)
-         !byte 0
-puzzle_offsets                       ; how far each column has been scrolled down from top of grid
-         !fill 8, 0
-puzzle_data                          ; character data
-         !fill 8, 0
-puzzle_data1
-         !fill 8, 0
-puzzle_data2
-         !fill 8, 0
-puzzle_data3
-         !fill 8, 0
-puzzle_data4
-         !fill 8, 0
-puzzle_data5
-         !fill 8, 0
-puzzle_data6
-         !fill 8, 0
-puzzle_data7
-         !fill 8, 0
-puzzle_data8
-         !fill 8, 0
-puzzle_word_count                    ; number of records in <puzzle_words>
-         !byte 0
-puzzle_words                         ; 32 x 8-byte records
-         !fill 256, 0                ; each record is a <puzzle_logical_width>-length word, no prefix
+puzzle_logical_width  = $0300        ; [0x01 byte ] number of letters per word (4..7)
+puzzle_logical_height = $0301        ; [0x01 byte ] number of rows with letters (1..5)
+puzzle_offsets        = $0302        ; [0x08 bytes] how far each column has been scrolled down from top of grid
+puzzle_data           = $030A        ; [0x08 bytes] character data
+puzzle_data1          = $0312        ; [0x08 bytes]
+puzzle_data2          = $031A        ; [0x08 bytes]
+puzzle_data3          = $0322        ; [0x08 bytes]
+puzzle_data4          = $032A        ; [0x08 bytes]
+puzzle_data5          = $0332        ; [0x08 bytes]
+puzzle_data6          = $033A        ; [0x08 bytes]
+puzzle_data7          = $0342        ; [0x08 bytes]
+puzzle_data8          = $034A        ; [0x08 bytes]
+puzzle_word_count     = $0352        ; [0x01 byte ] number of records in <puzzle_words>
+puzzle_words          = $0353        ; [0x80 bytes]
+                                     ; each 8-byte record is a <puzzle_logical_width>-length word, no prefix
+                                     ; extra bytes in each record are ignored
 
-InitPuzzle
+InitPuzzleStorage
 ; in:    A = logical puzzle width (number of letters in each word, 4..7)
          sta   puzzle_logical_width
          lda   #0
@@ -43,16 +31,15 @@ InitPuzzle
 -        sta   puzzle_offsets-1, x
          dex
          bne   -
+         ldx   #$7F
 -        sta   puzzle_words, x
-         inx
-         bne   -
+         dex
+         bpl   -
          rts
 
 AddLineToPuzzle
-; in:    A/Y points to <puzzle_logical_width> length character buffer (no prefix, no suffix)
-; out:   clobbers all registers
-;        clobbers $FE/$FF
-         +ST16 $FE
+; in:    ($FE) points to <puzzle_logical_width> length character buffer (no prefix, no suffix)
+; out:   clobbers all
          lda   puzzle_logical_height
          asl
          asl
@@ -69,8 +56,8 @@ AddLineToPuzzle
          rts
 
 AddTargetWordToPuzzle
-; in:    A/Y points to <puzzle_logical_width> length character buffer (no prefix, no suffix)
-         +ST16 $FE
+; in:    ($FE) points to <puzzle_logical_width> length character buffer (no prefix, no suffix)
+; out:   clobbers all
          lda   puzzle_word_count
          asl
          asl
@@ -225,42 +212,4 @@ ScrollPuzzleUp
          clc
          rts
 @fail    sec
-         rts
-
-RedrawPuzzle
-         jsr   Home
-         bit   TEXTMODE
-         jsr   DrawThinLines
-         +LDADDR puzzle_data
-         +ST16 $FE
-         ldx   #0                    ; logical row
---       ldy   #0                    ; logical column
--        lda   ($FE), y
-         jsr   DrawLargeCharacter
-         iny
-         cpy   puzzle_logical_width
-         bne   -
-         lda   $FE
-         clc
-         adc   #8
-         sta   $FE
-         bcc   +
-         inc   $FF
-+        inx
-         cpx   puzzle_logical_height
-         bne   --
-
-         bit   GFXMODE
-         rts
-
-AnimatePuzzleIntoPlace
-         ldy   #0
---       ldx   #4
--        jsr   ScrollPuzzleDown
-         jsr   ScrollDown
-         dex
-         bne   -
-         iny
-         cpy   #7
-         bne   --
          rts

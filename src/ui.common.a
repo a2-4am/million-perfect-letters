@@ -44,27 +44,6 @@ WaitForKeyWithTimeout
          bne   @wait1
 @exit    rts
 
-DrawThinLines
-         ldx   #$55
-         jsr   DrawThinLine
-         ldx   #$6B
-         ; /!\ execution falls through here
-DrawThinLine
-; in:    X = HGR row (0x00..0xBF)
-         lda   #$AA
-         ldy   HGRLO, x
-         sty   $FE
-         ldy   HGRHI, x
-         sty   $FF
-         ldy   GlobalLeftMargin
-         dey
--        sta   ($FE), y
-         eor   #$7F
-         iny
-         cpy   #$1F                  ; TODO
-         bcc   -
-         rts
-
 ScrollDown
 ; in:    Y = logical column to scroll
 ; out:   X/Y preserved
@@ -115,51 +94,6 @@ LogicalColumnToPhysicalColumn
 +        dey
          bpl   -
          tay
-         rts
-
-EraseColumnSelectionIndicator
-; out:   preserves X/Y
-         stx   @x+1
-         sty   @y+1
-         jsr   DrawThinLines
-@x       ldx   #$FD                  ; SMC
-@y       ldy   #$FD                  ; SMC
-         rts
-
-DrawColumnSelectionIndicator
-; out:   preserves X/Y
-         stx   @x+1
-         sty   @y+1
-         ldx   #$55
-         jsr   DrawOneSelectionIndicator
-         ldx   #$6B
-         jsr   DrawOneSelectionIndicator
-@x       ldx   #$FD                  ; SMC
-@y       ldy   #$FD                  ; SMC
-         rts
-
-DrawOneSelectionIndicator
-         lda   HGRLO, x
-         sta   $FE
-         lda   HGRHI, x
-         sta   $FF
-         ldy   GlobalLeftMargin
-         dey
-         lda   #$D5
-         ldx   selected_logical_column
-         beq   +
--        iny
-         iny
-         iny
-         eor   #$7F
-         dex
-         bne   -
-+        ldx   #4
--        sta   ($FE), y
-         eor   #$7F
-         iny
-         dex
-         bne   -
          rts
 
 ;------------------------------------------------------------------------------

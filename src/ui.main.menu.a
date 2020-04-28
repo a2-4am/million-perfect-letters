@@ -18,6 +18,8 @@ MainMenu
 ;        C set if user selected quit
          bcc   @noredraw
          jsr   Home
+         lda   #1
+         sta   GlobalLeftMargin
          ldy   #3
 -        ldx   #1
          lda   titleline1-2, y
@@ -122,6 +124,7 @@ SelectLevel
          beq   @eventEsc
          rts
 @eventReturn
+         jsr   Home
          lda   selectedlevel
          clc
          rts

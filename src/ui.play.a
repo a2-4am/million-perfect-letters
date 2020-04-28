@@ -1,0 +1,222 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; main event loop for playing puzzles
+;
+; Public functions:
+; - PlayEventLoop
+;
+
+selected_logical_column
+         !byte 0
+
+kLevelLeftMargins
+         !byte 15,13,12,10
+         !byte 15,13,12,10
+         !byte 15,13,12,10
+
+kLevelRightMargins
+         !byte 27,28,30,31
+         !byte 27,28,30,31
+         !byte 27,28,30,31
+
+kStartingColor
+         !byte $D5,$AA
+
+PlayEventLoop
+         bit   CLEARKBD
+-        lda   KBD
+         bpl   -
+         bit   CLEARKBD
+         and   #$7F
+         cmp   #$0B                  ; up arrow
+         beq   @eventUpArrow
+         cmp   #$0A                  ; down arrow
+         beq   @eventDownArrow
+         cmp   #$08                  ; left arrow
+         beq   @eventLeftArrow
+         cmp   #$15                  ; right arrow
+         beq   @eventRightArrow
+         cmp   #$1B                  ; Esc
+         beq   @eventEsc
+         cmp   #$61
+         bcc   +
+         and   #$DF
++        cmp   #$41
+         bcc   +
+         cmp   #$5B
+         bcs   +
+         jsr   @eventLetter
++        jmp   PlayEventLoop
+@eventLeftArrow
+         ldy   selected_logical_column
+         jsr   EraseColumnSelectionIndicator
+         bne   +
+         ldy   puzzle_logical_width
++        dey
+         sty   selected_logical_column
+         jsr   DrawColumnSelectionIndicator
+         jmp   @done
+@eventRightArrow
+         ldy   selected_logical_column
+         jsr   EraseColumnSelectionIndicator
+         iny
+         cpy   puzzle_logical_width
+         bcc   +
+         ldy   #0
++        sty   selected_logical_column
+         jsr   DrawColumnSelectionIndicator
+         jmp   @done
+@eventLetter
+         ldy   selected_logical_column
+         jsr   FindLetterInColumn
+         bcs   +
+         ; TODO
+@eventEsc
++        rts
+@eventUpArrow
+         ldy   selected_logical_column
+         jsr   ScrollPuzzleUp
+         bcs   @fail
+         jsr   ScrollUp
+         jsr   CheckForTargetWord
+         bcc   FoundTargetWord
+         bcs   @done
+@fail    jsr   SoftBell
+@done    jmp   PlayEventLoop
+@eventDownArrow
+         ldy   selected_logical_column
+         jsr   ScrollPuzzleDown
+         bcs   @fail
+         jsr   ScrollDown
+         jsr   CheckForTargetWord
+         bcc   FoundTargetWord
+         bcs   @done                            ; always branches
+
+FoundTargetWord
+         ldx   #4
+         ldy   #0
+-        lda   puzzle_data4, y
+         jsr   DrawLargeCharacter
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         ; TODO check whether puzzle is complete
+         jmp   PlayEventLoop
+
+DrawThinLines
+         ldx   #$55
+         jsr   DrawThinLine
+         ldx   #$6B
+         ; /!\ execution falls through here
+DrawThinLine
+; in:    X = HGR row (0x00..0xBF)
+         ldy   HGRLO, x
+         sty   $FE
+         ldy   HGRHI, x
+         sty   $FF
+         ldx   gLevelID
+         ldy   kLevelRightMargins, x
+         sty   @right+1
+         ldy   GlobalLeftMargin
+         dey
+         tya
+         and   #1
+         tax
+         lda   kStartingColor, x
+-        sta   ($FE), y
+         eor   #$7F
+         iny
+@right   cpy   #$FD                  ; SMC
+         bcc   -
+         rts
+
+EraseColumnSelectionIndicator
+; out:   preserves X/Y
+         stx   @x+1
+         sty   @y+1
+         jsr   DrawThinLines
+@x       ldx   #$FD                  ; SMC
+@y       ldy   #$FD                  ; SMC
+         rts
+
+DrawColumnSelectionIndicator
+; out:   preserves X/Y
+         stx   @x+1
+         sty   @y+1
+         ldx   #$55
+         jsr   DrawOneSelectionIndicator
+         ldx   #$6B
+         jsr   DrawOneSelectionIndicator
+@x       ldx   #$FD                  ; SMC
+@y       ldy   #$FD                  ; SMC
+         rts
+
+DrawOneSelectionIndicator
+         lda   HGRLO, x
+         sta   $FE
+         lda   HGRHI, x
+         sta   $FF
+         ldy   GlobalLeftMargin
+         dey
+         tya
+         and   #1
+         eor   #1
+         tax
+         lda   kStartingColor, x
+         ldx   selected_logical_column
+         beq   +
+-        iny
+         iny
+         iny
+         eor   #$7F
+         dex
+         bne   -
++        ldx   #4
+-        sta   ($FE), y
+         eor   #$7F
+         iny
+         dex
+         bne   -
+         rts
+
+RedrawPuzzle
+         jsr   Home
+         bit   TEXTMODE
+         jsr   DrawThinLines
+         +LDADDR puzzle_data
+         +ST16 $FE
+         ldx   #0                    ; logical row
+--       ldy   #0                    ; logical column
+-        lda   ($FE), y
+         jsr   DrawLargeCharacter
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         lda   $FE
+         clc
+         adc   #8
+         sta   $FE
+         bcc   +
+         inc   $FF
++        inx
+         cpx   puzzle_logical_height
+         bne   --
+
+         bit   GFXMODE
+         rts
+
+AnimatePuzzleIntoPlace
+         ldx   gLevelID
+         ldy   kLevelWidths, x
+         sty   @max+1
+         ldy   #0
+--       ldx   #4
+-        jsr   ScrollPuzzleDown
+         jsr   ScrollDown
+         dex
+         bne   -
+         iny
+@max     cpy   #$FD                  ; SMC
+         bne   --
+         rts

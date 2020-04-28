@@ -1,0 +1,129 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+
+gLevelID
+         !byte $FD                   ; 0x00..0x0B
+gPuzzleID
+         !byte $FD                   ; 0x00..0x63
+
+kLevelWidths
+         !byte 4,5,6,7
+         !byte 4,5,6,7
+         !byte 4,5,6,7
+
+MaybeLoadLevelsFromDisk
+; in:    A = level ID
+; out:   C clear if file loaded and parsed successfully (or it was already in memory)
+;        C set if file could not be loaded and/or parsed
+;        other registers/flags clobbered
+         clc
+         adc   #$41
+         cmp   @fileLoaded
+         beq   @exit
+         sta   @filename+1
+         +LDADDR @filename
+         jsr   OpenFile
+         bcs   @exit
+         sta   @refnum
+         jsr   ReadFile
+@refnum  !byte $FD                   ; SMC
+         !word $9000                 ; load address
+         !word $2F00                 ; maximum length to read
+         php
+         bcs   @closeAndPopStatus
+         plp
+         jsr   ParseLevelData
+         cpx   #100
+         bne   +
+         clc
+         +HIDE_NEXT_BYTE
++        sec
+         php
+         lda   @filename+1
+         sta   @fileLoaded
+@closeAndPopStatus
+         lda   @refnum
+         jsr   CloseFile
+         plp
+@exit    rts
+@fileLoaded
+         !byte $FF                   ; no file
+@filename
+         !byte 1                     ; length
+         !raw  $FD                   ; SMC
+
+ParseLevelData
+; find the starting address of each of the 100 puzzles in this file
+; in:    $9000+ contains raw level data from disk
+         lda   #$FF
+         sta   $FE
+         lda   #$8F
+         sta   $FF                   ; ($FE) -> $8FFF, one byte before start of file data
+         ldy   #$00
+@newLine ldx   #$00                  ; X = puzzle ID
+         beq   @emptyline            ; always branches
+@skipLine                            ; skip to CR
+         jsr   @IncAndGetChar
+         cmp   #$0A                  ; CR
+         bne   @skipLine
+@emptyline
+         jsr   @IncAndGetChar
+         cmp   #$0A                  ; CR in first position (blank line) -> skip
+         beq   @emptyline
+         cmp   #$23                  ; '#' starts a comment -> skip to CR
+         beq   @skipLine
+         cmp   #$5B                  ; '[' ends the parsing
+         beq   @exit
+         lda   $FE
+         sta   LEVELLO, x
+         lda   $FF
+         sta   LEVELHI, x
+         inx
+         bne   @skipLine             ; always branches
+
+@IncAndGetChar
+         inc   $FE
+         bne   +
+         inc   $FF
++        lda   ($FE),y
+         cmp   #$0D                  ; CR - hide it
+         beq   @IncAndGetChar
+@exit    rts
+
+ParseOnePuzzle
+         ldx   gPuzzleID
+         lda   LEVELLO, x
+         sta   $FE
+         lda   LEVELHI, x
+         sta   $FF
+         bne   @addLine              ; always branches
+@lineLoop
+         jsr   @inc
+@addLine
+         jsr   AddLineToPuzzle
+         ldx   gLevelID
+         ldy   kLevelWidths, x
+-        jsr   @inc
+         dey
+         bne   -
+         lda   ($FE), y
+         cmp   #$2C                  ; ,
+         beq   @lineLoop
+@targetWordLoop
+         jsr   @inc
+         jsr   AddTargetWordToPuzzle
+         ldx   gLevelID
+         ldy   kLevelWidths, x
+-        jsr   @inc
+         dey
+         bne   -
+         lda   ($FE), y
+         cmp   #$2C                  ; ,
+         beq   @targetWordLoop
+         rts
+@inc
+         inc   $FE
+         bne   +
+         inc   $FF
++        rts

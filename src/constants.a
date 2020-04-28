@@ -37,7 +37,7 @@ ROM_IN0 =      $FE89      ; SETKBD
 ROM_PR0 =      $FE93      ; SETVID
 
 ; zero page
-;PARAM        = $00        ; word (used by PARAMS_ON_STACK macro, so basically everywhere)
+PARAM        = $00        ; word (used by PARAMS_ON_STACK macro, so basically everywhere)
 ;PTR          = $02        ; word
 ;SRC          = $04        ; word
 ;DEST         = $06        ; word
@@ -54,3 +54,6 @@ GENSCROLLDOWN = $0800     ; 0x0900 bytes
 GENSCROLLUP  = $1100      ; 0x0900 bytes
 HGRLO        = $1A00      ; 0xC0 bytes
 HGRHI        = $1B00      ; 0xC0 bytes
+PRODOSFILEBUFFER = $1C00  ; 0x0400 bytes
+LEVELLO      = $8F38      ; 0x64 bytes
+LEVELHI      = $8F9C      ; 0x64 bytes

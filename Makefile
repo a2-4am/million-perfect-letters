@@ -24,9 +24,10 @@ BUILDDISK=build/million
 asm:
 	mkdir -p build
 	$(ACME) -r build/million.lst src/million.a 2>build/log
-	cp res/work.po "$(BUILDDISK)".po >build/log
-	cp res/_FileInformation.txt build/ >build/log
-	$(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "build/MILLION.SYSTEM" >build/log
+	cp res/work.po "$(BUILDDISK)".po >>build/log
+	cp res/_FileInformation.txt build/ >>build/log
+	$(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "build/MILLION.SYSTEM" >>build/log
+	for f in res/levels/*; do $(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "$$f" >>build/log; done
 
 clean:
 	rm -rf build/

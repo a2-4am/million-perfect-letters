@@ -18,155 +18,48 @@ FirstMover
 Start
          jsr   TitlePage
          ; C set if title sequence ended prematurely (i.e. main menu requires full redraw)
-         jsr   MainMenu
-         bcc   @play
-         jsr   $BF00
-         !byte $65
-         !word +
-+        !byte 4,0,0,0,0,0,0
-@play
-         ; A = level ID
-         ; TODO load appropriate level data from disk
-         lda   #$0A
+-        jsr   MainMenu
+         bcc   +
+         jmp   Quit
++        sta   gLevelID
+         jsr   MaybeLoadLevelsFromDisk          ; A = level ID from 'select level' page
+         bcc   +
+         jmp   $FF59 ; TODO
++        ldx   gLevelID
+         lda   kLevelLeftMargins, x
          sta   GlobalLeftMargin
-         lda   #7
-         jsr   InitPuzzle
+         lda   kLevelWidths, x
+         jsr   InitPuzzleStorage
+         lda   #0
+         sta   gPuzzleID
+         ;jsr   FindNextUnsolvedPuzzle ; TODO
 
-         +LDADDR puzzleline1
-         jsr   AddLineToPuzzle
-         +LDADDR puzzleline2
-         jsr   AddLineToPuzzle
-         +LDADDR puzzleline3
-         jsr   AddLineToPuzzle
-
-         +LDADDR targetword1
-         jsr   AddTargetWordToPuzzle
-         +LDADDR targetword2
-         jsr   AddTargetWordToPuzzle
-         +LDADDR targetword3
-         jsr   AddTargetWordToPuzzle
+         jsr   ParseOnePuzzle
 
          lda   #0
          sta   selected_logical_column
          jsr   RedrawPuzzle
          jsr   AnimatePuzzleIntoPlace
          jsr   DrawColumnSelectionIndicator
-;         +PRINT_AT titleline1, 0, 0
+;         +PRINT_AT guide, 0, 0
 ;         +PRINT_AT titleline2, 1, 0
 ;         +PRINT_AT titleline3, 2, 0
 ;         +PRINT_AT levelline, 4, 0
-         bit   $c010
-         jmp   PlayEventLoop
+         jsr   PlayEventLoop
+         sec
+         bcs   -                     ; always branches
 
-selected_logical_column
-         !byte 0
-
-PlayEventLoop
--        lda   $c000
-         bpl   -
-         bit   $c010
-         and   #$7F
-         cmp   #$0B                  ; up arrow
-         beq   EventUpArrow
-         cmp   #$0A                  ; down arrow
-         beq   EventDownArrow
-         cmp   #$08                  ; left arrow
-         beq   EventLeftArrow
-         cmp   #$15                  ; right arrow
-         beq   EventRightArrow
-         cmp   #$61
-         bcc   +
-         and   #$DF
-+        cmp   #$41
-         bcc   +
-         cmp   #$5B
-         bcs   +
-         jsr   EventLetter
-+        jmp   PlayEventLoop
-
-EventUpArrow
-         ldy   selected_logical_column
-         jsr   ScrollPuzzleUp
-         bcs   @fail
-         jsr   ScrollUp
-         jsr   CheckForTargetWord
-         bcc   FoundTargetWord
-         bcs   @done
-@fail    jsr   SoftBell
-@done    jmp   PlayEventLoop
-
-EventDownArrow
-         ldy   selected_logical_column
-         jsr   ScrollPuzzleDown
-         bcs   @fail
-         jsr   ScrollDown
-         jsr   CheckForTargetWord
-         bcc   FoundTargetWord
-         bcs   @done
-@fail    jsr   SoftBell
-@done    jmp   PlayEventLoop
-
-FoundTargetWord
-         ldx   #4
-         ldy   #0
--        lda   puzzle_data4, y
-         jsr   DrawLargeCharacter
-         iny
-         cpy   puzzle_logical_width
-         bne   -
-         jmp   PlayEventLoop
-
-EventLeftArrow
-         ldy   selected_logical_column
-         jsr   EraseColumnSelectionIndicator
-         bne   +
-         ldy   puzzle_logical_width
-+        dey
-         sty   selected_logical_column
-         jsr   DrawColumnSelectionIndicator
-         jmp   PlayEventLoop
-
-EventRightArrow
-         ldy   selected_logical_column
-         jsr   EraseColumnSelectionIndicator
-         iny
-         cpy   puzzle_logical_width
-         bcc   +
-         ldy   #0
-+        sty   selected_logical_column
-         jsr   DrawColumnSelectionIndicator
-         jmp   PlayEventLoop
-
-EventLetter
-         ldy   selected_logical_column
-         jsr   FindLetterInColumn
-         bcs   @exit
-         ; TODO
-@exit    rts
-
-levelline
-         !byte 7
-         !raw "LEVEL "
-levelchar
-         !raw "D"
-
-puzzleline1
-         !raw "PRTFELE"
-puzzleline2
-         !raw "MHERINS"
-puzzleline3
-         !raw "SIOTBET"
-targetword1
-         !raw "MITTENS"
-targetword2
-         !raw "PROFILE"
-targetword3
-         !raw "SHERBET"
+guide
+         !byte 40
+         !raw "0123456789012345678901234567890123456789"
 
          !source "src/puzzle.a"
          !source "src/hw.vbl.a"
+         !source "src/hw.storage.a"
+         !source "src/glue.mli.a"
          !source "src/ui.title.a"
          !source "src/ui.main.menu.a"
+         !source "src/ui.play.a"
          !source "src/ui.common.a"
          !source "src/ui.font.courier.double.prime.a"
          !source "src/ui.font.courier.double.prime.data.a"
