@@ -112,6 +112,14 @@
 +
 }
 
+; increment a 16-bit value stored at an address
+!macro   INCADDR .addr {
+         inc   .addr
+         bne   +
+         inc   .addr+1
++
+}
+
 ; compare a 16-bit value in A (low) and Y (high) to an absolute address
 !macro   CMP16ADDR .addr {
          cmp   .addr

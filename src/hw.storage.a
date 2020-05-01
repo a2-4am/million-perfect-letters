@@ -1,39 +1,72 @@
 ;license:MIT
 ;(c) 2020 by 4am
 ;
+; disk functions to load puzzles, and load & save puzzle completion status
+;
+; Public functions:
+; - MaybeLoadWorldFromDisk
+; - LoadProgressFromDisk
+; - LoadProgressFromMemory
+; - LoadPuzzleFromMemory
+; - HasPuzzleBeenCompleted
+; - MarkPuzzleCompleted
+; - FindPackedProgressAddr
+;
+; Public variables:
+; - gWorldID
+; - gPuzzleID
+;
+; Public constants:
+; - kPuzzleWidths
+;
 
-gLevelID
+gWorldID                             ; a world is a group of 100 similar puzzles (12 worlds in total, 0-based)
          !byte $FD                   ; 0x00..0x0B
-gPuzzleID
+gPuzzleID                            ; ID of current puzzle within the current world (100 puzzles per world, 0-based)
          !byte $FD                   ; 0x00..0x63
 
-kLevelWidths
-         !byte 4,5,6,7
+kPuzzleWidths                        ; width in letters of the puzzles in each world
+         !byte 4,5,6,7               ; (every puzzle in a world is the same width)
          !byte 4,5,6,7
          !byte 4,5,6,7
 
-MaybeLoadLevelsFromDisk
-; in:    A = level ID
+progressRefNum                       ; [byte][private]
+         !byte $FF                   ; 0xFF means 'no progress file open'
+checksum = $FB
+packedvalue = $FC
+bitcount = $FD
+
+;------------------------------------------------------------------------------
+; MaybeLoadWorldFromDisk
+; load a world (100 puzzles) from a file on disk
+; caches the last world loaded to reduce unnecessary disk access
+;
+; in:    A = world ID
 ; out:   C clear if file loaded and parsed successfully (or it was already in memory)
 ;        C set if file could not be loaded and/or parsed
 ;        other registers/flags clobbered
+;------------------------------------------------------------------------------
+MaybeLoadWorldFromDisk
          clc
          adc   #$41
          cmp   @fileLoaded
-         beq   @exit
-         sta   @filename+1
-         +LDADDR @filename
+         bne   +
+         clc
+         rts
++        sta   @filename+1
          jsr   OpenFile
+         !word @filename
+         !word WORLDFILEBUFFER
          bcs   @exit
          sta   @refnum
          jsr   ReadFile
 @refnum  !byte $FD                   ; SMC
-         !word $9000                 ; load address
+         !word WORLDDATA             ; load address
          !word $2F00                 ; maximum length to read
          php
          bcs   @closeAndPopStatus
          plp
-         jsr   ParseLevelData
+         jsr   @PreParseWorldData
          cpx   #100
          bne   +
          clc
@@ -53,9 +86,9 @@ MaybeLoadLevelsFromDisk
          !byte 1                     ; length
          !raw  $FD                   ; SMC
 
-ParseLevelData
-; find the starting address of each of the 100 puzzles in this file
-; in:    $9000+ contains raw level data from disk
+@PreParseWorldData
+; find the starting address of each of the 100 puzzles in this world
+; in:    $9000+ contains raw world data from disk
          lda   #$FF
          sta   $FE
          lda   #$8F
@@ -76,54 +109,294 @@ ParseLevelData
          cmp   #$5B                  ; '[' ends the parsing
          beq   @exit
          lda   $FE
-         sta   LEVELLO, x
+         sta   PUZZLELO, x
          lda   $FF
-         sta   LEVELHI, x
+         sta   PUZZLEHI, x
          inx
          bne   @skipLine             ; always branches
 
 @IncAndGetChar
-         inc   $FE
-         bne   +
-         inc   $FF
-+        lda   ($FE),y
+; in:    Y = 0
+         +INCADDR $FE
+         lda   ($FE),y
          cmp   #$0D                  ; CR - hide it
          beq   @IncAndGetChar
-@exit    rts
+         rts
 
-ParseOnePuzzle
-         ldx   gPuzzleID
-         lda   LEVELLO, x
+;------------------------------------------------------------------------------
+; LoadProgressFromDisk
+;
+; see comments in MarkPuzzleCompleted for file format
+;
+; in:    none
+; out:   C clear if file was read successfully, and
+;          progressRefNum contains ProDOS file reference number (file is left
+;          open)
+;        C set if error occurred, and
+;          progressRefNum = 0xFF
+;------------------------------------------------------------------------------
+LoadProgressFromDisk
+         jsr   OpenFile
+         !word @progressFile
+         !word PROGRESSFILEBUFFER
+         bcs   +
+         sta   @refnum
+         sta   progressRefNum
+         jsr   ReadFile
+@refnum  !byte $FD                   ; SMC
+         !word PACKEDPROGRESS        ; data address
+         !word $00C0                 ; data length
++        rts
+@progressFile
+         !byte 8
+         !raw "PROGRESS"
+
+;------------------------------------------------------------------------------
+; LoadProgressFromMemory
+; unpacks one world's progress into a 1-byte-per-puzzle array for easier access
+;
+; in:    progress file must be in memory (call MaybeLoadProgressFromDisk and
+;          check C)
+; out:   A = next puzzle ID
+;------------------------------------------------------------------------------
+LoadProgressFromMemory
+         lda   gWorldID
+         jsr   FindPackedProgressAddr
+                                     ; ($FE) -> start of the 16-byte structure for this world
+         ; zero destination array
+         ldx   #103
+         lda   #0
+-        sta   PROGRESS, x
+         dex
+         bpl   -
+         ; unpack values
+         ldy   #0                    ; index into ($FE) (source data)
+         ldx   #0                    ; index into PROGRESS (destination data)
+--       lda   #8
+         sta   bitcount
+         lda   ($FE), y
+-        lsr
+         rol   PROGRESS, x           ; note: PROGRESS structure is 104 bytes (a multiple of 8),
+         inx                         ; even though only the first 100 bytes are used
+         dec   bitcount
+         bne   -
+         iny
+         cpy   #$0D
+         bne   --
+         lda   ($FE), y              ; A = next puzzle ID
+         rts
+
+;------------------------------------------------------------------------------
+; LoadPuzzleFromMemory
+; loads one puzzle from the in-memory cache of the world file, into the
+; 'now playing this puzzle' data structures
+;
+; in:    X = puzzle ID
+;        world file must be in memory (call MaybeLoadWorldFromDisk and check C)
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+LoadPuzzleFromMemory
+         lda   PUZZLELO, x
          sta   $FE
-         lda   LEVELHI, x
+         lda   PUZZLEHI, x
          sta   $FF
          bne   @addLine              ; always branches
 @lineLoop
-         jsr   @inc
+         +INCADDR $FE
 @addLine
          jsr   AddLineToPuzzle
-         ldx   gLevelID
-         ldy   kLevelWidths, x
--        jsr   @inc
-         dey
-         bne   -
+         ldx   gWorldID
+         lda   kPuzzleWidths, x
+         clc
+         adc   $FE
+         sta   $FE
+         bcc   +
+         inc   $FF
++
+         ldy   #0
          lda   ($FE), y
          cmp   #$2C                  ; ,
          beq   @lineLoop
 @targetWordLoop
-         jsr   @inc
+         +INCADDR $FE
          jsr   AddTargetWordToPuzzle
-         ldx   gLevelID
-         ldy   kLevelWidths, x
--        jsr   @inc
-         dey
-         bne   -
+         ldx   gWorldID
+         lda   kPuzzleWidths, x
+         clc
+         adc   $FE
+         sta   $FE
+         bcc   +
+         inc   $FF
++
+         ldy   #0
          lda   ($FE), y
          cmp   #$2C                  ; ,
          beq   @targetWordLoop
          rts
-@inc
-         inc   $FE
-         bne   +
+
+;------------------------------------------------------------------------------
+; HasPuzzleBeenCompleted
+;
+; in:    X = puzzle ID
+; out:   C clear if puzzle had previously been marked as completed
+;        C set if puzzle has never been marked as completed
+;        X/Y preserved
+;        A clobbered
+;        other flags clobbered
+;------------------------------------------------------------------------------
+HasPuzzleBeenCompleted
+         lda   PROGRESS, x
+         beq   +
+         clc
+         rts
++        sec
+         rts
+
+;------------------------------------------------------------------------------
+; MarkPuzzleCompleted
+;
+; in:    X = puzzle ID
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+MarkPuzzleCompleted
+         ; Completion status for the current world (100 puzzles) is stored unpacked in
+         ; memory for easy access
+         ; Mark this puzzle as completed in the unpacked table
+         lda   #1
+         sta   PROGRESS, x
+         ; Find the next uncompleted puzzle
+         clc
+         +HIDE_NEXT_BYTE
+--       sec
+-        lda   PROGRESS, x
+         beq   +
+         inx
+         cpx   #100
+         bne   -
+         ldx   #0                    ; start over at the puzzle 0
+         bcc   --
+         ; If we fall through here, it means all puzzles in this world
+         ; have been completed (yay!), and we'll leave X at 0.
+         ; If we branch here, we found the next uncompleted puzzle
+         ; and X contains that puzzle ID.
++        txa
+         pha                         ; push next puzzle ID
+;
+; Completion status for all puzzles across all worlds is stored in packed
+; bitfields, 1 bit per puzzle, so that the file on disk fits in a single
+; block (actually a single sector).
+;
+; This is the file format (0xC0 bytes):
+; +0x00 bit 0 - completion status for world 0x00, puzzle 0x00
+;       bit 1 - completion status for world 0x00, puzzle 0x01
+;       bit 2 - completion status for world 0x00, puzzle 0x02
+;       bit 3 - completion status for world 0x00, puzzle 0x03
+;       bit 4 - completion status for world 0x00, puzzle 0x04
+;       bit 5 - completion status for world 0x00, puzzle 0x05
+;       bit 6 - completion status for world 0x00, puzzle 0x06
+;       bit 7 - completion status for world 0x00, puzzle 0x07
+; ...
+; +0x0C bit 0 - completion status for world 0x00, puzzle 0x60
+;       bit 1 - completion status for world 0x00, puzzle 0x61
+;       bit 2 - completion status for world 0x00, puzzle 0x62
+;       bit 3 - completion status for world 0x00, puzzle 0x63
+;       bit 4-7 always 0
+; +0x0D next puzzle to play in world 0x00 (0x00..0x63)
+; +0x0E percent complete (0x00..0x64)
+; +0x0F XOR of bytes +0x00..+0x0E
+; +0x10..+0x1F same format but for world 0x01
+; +0x20..+0x2F same format but for world 0x02
+; +0x30..+0x3F same format but for world 0x03
+; +0x40..+0x4F same format but for world 0x04
+; +0x50..+0x5F same format but for world 0x05
+; +0x60..+0x6F same format but for world 0x06
+; +0x70..+0x7F same format but for world 0x07
+; +0x80..+0x8F same format but for world 0x08
+; +0x90..+0x9F same format but for world 0x09
+; +0xA0..+0xAF same format but for world 0x0A
+; +0xB0..+0xBF same format but for world 0x0B
+;
+; Among other things, this means that a file filled with zeroes is valid
+; and means that no puzzles have been completed in any world and you should
+; start at the beginning. So that's nice.
+;
+         lda   gWorldID
+         jsr   FindPackedProgressAddr
+                                     ; ($FE) -> start of the 16-byte structure for this world
+         ; zero out all 16 bytes
+         ldy   #$0F
+         lda   #$00
+-        sta   ($FE), y
+         dey
+         bpl   -
+         sta   checksum
+         ; build packed values
+         ldy   #0
+         ldx   #0
+--       lda   #8
+         sta   bitcount
+         lda   #0
+         sta   packedvalue
+-        lda   PROGRESS, x
+         ror
+         ror   packedvalue
+         inx
+         dec   bitcount
+         bne   -
+         lda   packedvalue
+         sta   ($FE), y
+         eor   checksum
+         sta   checksum
+         iny
+         cpy   #$0D
+         bne   --
+         pla                         ; A = next puzzle ID (pushed earlier)
+         sta   ($FE), y
+         eor   checksum
+         sta   checksum
+         ; count number of completed puzzles
+         ldy   #0
+         ldx   #99
+-        lda   PROGRESS, x
+         beq   +
+         iny
++        dex
+         bpl   -
+         tya                         ; A = number of puzzles completed (out of 100, so also the percent complete)
+         ldy   #$0E
+         sta   ($FE), y
+         eor   checksum
+         iny
+         sta   ($FE), y
+         lda   progressRefNum
+         jsr   SetMarkTo0
+         lda   progressRefNum
+         jsr   WriteFile
+         !word PACKEDPROGRESS
+         !word $00C0
+         lda   progressRefNum
+         jsr   FlushFile
+         ldy   #$0D
+         lda   ($FE), y
+         rts
+
+FindPackedProgressAddr
+; in:    A = world ID
+; out:   ($FE) points to first byte of this world's packed progress (16-byte structure)
+;        A/Y clobbered
+;        X preserved
+;        all flags clobbered
+         pha
+         +LDADDR PACKEDPROGRESS
+         +ST16 $FE
+         pla
+         asl
+         asl
+         asl
+         asl
+         clc
+         adc   $FE
+         sta   $FE
+         bcc   +
          inc   $FF
-+        rts
+         rts

@@ -5,17 +5,26 @@
 ;
 ; Public functions:
 ; - PlayEventLoop
+; - ClearAndDrawPuzzle
+; - DrawPuzzleChrome
+; - AnimatePuzzleIntoPlace
+; - AnimatePuzzleCompleted
 ;
 
-selected_logical_column
+; codes returned from PlayEventLoop to explain why the event loop ended
+kCompletedPuzzle = 1
+kRequestedRestart = 2
+kPressedEsc = 3
+
+gSelectedLogicalColumn
          !byte 0
 
-kLevelLeftMargins
+kWorldLeftMargins
          !byte 15,13,12,10
          !byte 15,13,12,10
          !byte 15,13,12,10
 
-kLevelRightMargins
+kWorldRightMargins
          !byte 27,28,30,31
          !byte 27,28,30,31
          !byte 27,28,30,31
@@ -23,6 +32,15 @@ kLevelRightMargins
 kStartingColor
          !byte $D5,$AA
 
+;------------------------------------------------------------------------------
+; PlayEventLoop
+; main event loop for playing a puzzle
+;
+; in:    puzzle has been loaded into memory, drawn on screen, animated, &c.
+;        and is ready to play
+; out:   A = reason why event loop ended (see list above)
+;        all other registers and flags clobbered
+;------------------------------------------------------------------------------
 PlayEventLoop
          bit   CLEARKBD
 -        lda   KBD
@@ -39,6 +57,8 @@ PlayEventLoop
          beq   @eventRightArrow
          cmp   #$1B                  ; Esc
          beq   @eventEsc
+         cmp   #$12                  ; Ctrl-R
+         beq   @eventCtrlR
          cmp   #$61
          bcc   +
          and   #$DF
@@ -46,54 +66,65 @@ PlayEventLoop
          bcc   +
          cmp   #$5B
          bcs   +
-         jsr   @eventLetter
+         jmp   @eventLetter
 +        jmp   PlayEventLoop
+
 @eventLeftArrow
-         ldy   selected_logical_column
+         ldy   gSelectedLogicalColumn
          jsr   EraseColumnSelectionIndicator
          bne   +
          ldy   puzzle_logical_width
 +        dey
-         sty   selected_logical_column
+         sty   gSelectedLogicalColumn
          jsr   DrawColumnSelectionIndicator
-         jmp   @done
+         jmp   PlayEventLoop
+
 @eventRightArrow
-         ldy   selected_logical_column
+         ldy   gSelectedLogicalColumn
          jsr   EraseColumnSelectionIndicator
          iny
          cpy   puzzle_logical_width
          bcc   +
          ldy   #0
-+        sty   selected_logical_column
++        sty   gSelectedLogicalColumn
          jsr   DrawColumnSelectionIndicator
-         jmp   @done
+         jmp   PlayEventLoop
+
 @eventLetter
-         ldy   selected_logical_column
+         ldy   gSelectedLogicalColumn
          jsr   FindLetterInColumn
-         bcs   +
          ; TODO
+         jmp   PlayEventLoop
+
 @eventEsc
-+        rts
+         lda   #kPressedEsc
+         rts
+
+@eventCtrlR
+         lda   #kRequestedRestart
+         rts
+
 @eventUpArrow
-         ldy   selected_logical_column
+         ldy   gSelectedLogicalColumn
          jsr   ScrollPuzzleUp
          bcs   @fail
          jsr   ScrollUp
          jsr   CheckForTargetWord
-         bcc   FoundTargetWord
+         bcc   @foundTargetWord
          bcs   @done
 @fail    jsr   SoftBell
 @done    jmp   PlayEventLoop
+
 @eventDownArrow
-         ldy   selected_logical_column
+         ldy   gSelectedLogicalColumn
          jsr   ScrollPuzzleDown
          bcs   @fail
          jsr   ScrollDown
          jsr   CheckForTargetWord
-         bcc   FoundTargetWord
-         bcs   @done                            ; always branches
+         bcc   @foundTargetWord
+         bcs   @done
 
-FoundTargetWord
+@foundTargetWord
          ldx   #4
          ldy   #0
 -        lda   puzzle_data4, y
@@ -101,90 +132,24 @@ FoundTargetWord
          iny
          cpy   puzzle_logical_width
          bne   -
-         ; TODO check whether puzzle is complete
-         jmp   PlayEventLoop
-
-DrawThinLines
-         ldx   #$55
-         jsr   DrawThinLine
-         ldx   #$6B
-         ; /!\ execution falls through here
-DrawThinLine
-; in:    X = HGR row (0x00..0xBF)
-         ldy   HGRLO, x
-         sty   $FE
-         ldy   HGRHI, x
-         sty   $FF
-         ldx   gLevelID
-         ldy   kLevelRightMargins, x
-         sty   @right+1
-         ldy   GlobalLeftMargin
-         dey
-         tya
-         and   #1
-         tax
-         lda   kStartingColor, x
--        sta   ($FE), y
-         eor   #$7F
-         iny
-@right   cpy   #$FD                  ; SMC
-         bcc   -
+         jsr   IsPuzzleComplete
+         bcs   @done
+         lda   #kCompletedPuzzle
          rts
 
-EraseColumnSelectionIndicator
-; out:   preserves X/Y
-         stx   @x+1
-         sty   @y+1
+;------------------------------------------------------------------------------
+; ClearAndDrawPuzzle
+; clears screen and draws current puzzle (but not column selection indicator or
+; other UI elements)
+;
+; in:    none
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+ClearAndDrawPuzzle
+;         jsr   Home
+;         bit   TEXTMODE
          jsr   DrawThinLines
-@x       ldx   #$FD                  ; SMC
-@y       ldy   #$FD                  ; SMC
-         rts
-
-DrawColumnSelectionIndicator
-; out:   preserves X/Y
-         stx   @x+1
-         sty   @y+1
-         ldx   #$55
-         jsr   DrawOneSelectionIndicator
-         ldx   #$6B
-         jsr   DrawOneSelectionIndicator
-@x       ldx   #$FD                  ; SMC
-@y       ldy   #$FD                  ; SMC
-         rts
-
-DrawOneSelectionIndicator
-         lda   HGRLO, x
-         sta   $FE
-         lda   HGRHI, x
-         sta   $FF
-         ldy   GlobalLeftMargin
-         dey
-         tya
-         and   #1
-         eor   #1
-         tax
-         lda   kStartingColor, x
-         ldx   selected_logical_column
-         beq   +
--        iny
-         iny
-         iny
-         eor   #$7F
-         dex
-         bne   -
-+        ldx   #4
--        sta   ($FE), y
-         eor   #$7F
-         iny
-         dex
-         bne   -
-         rts
-
-RedrawPuzzle
-         jsr   Home
-         bit   TEXTMODE
-         jsr   DrawThinLines
-         +LDADDR puzzle_data
+         +LDADDR puzzle_data0
          +ST16 $FE
          ldx   #0                    ; logical row
 --       ldy   #0                    ; logical column
@@ -206,9 +171,15 @@ RedrawPuzzle
          bit   GFXMODE
          rts
 
+;------------------------------------------------------------------------------
+; AnimatePuzzleIntoPlace
+;
+; in:    none
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
 AnimatePuzzleIntoPlace
-         ldx   gLevelID
-         ldy   kLevelWidths, x
+         ldx   gWorldID
+         ldy   kPuzzleWidths, x
          sty   @max+1
          ldy   #0
 --       ldx   #4
@@ -219,4 +190,165 @@ AnimatePuzzleIntoPlace
          iny
 @max     cpy   #$FD                  ; SMC
          bne   --
+         rts
+
+;------------------------------------------------------------------------------
+; DrawPuzzleChrome
+; draw all elements on puzzle screen that are not the actual puzzle
+; (e.g. column selection indicator, game title, help text)
+;
+; in:    none
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+DrawPuzzleChrome
+         +PRINT_AT kTitleLine1, 0, 0
+         +PRINT_AT kTitleLine2, 1, 0
+         +PRINT_AT kTitleLine3, 2, 0
+         +LDADDR kWorldShortNames
+         +ST16 $FE
+         lda   gWorldID
+         asl
+         asl
+         clc
+         adc   $FE
+         sta   $FE
+         bcc   +
+         inc   $FF
++
+         lda   #4
+         sta   VTAB
+         lda   #0
+         sta   HTAB
+         +LD16 $FE
+         jsr   DrawHeavySilkString
+         +LDADDR kDash
+         jsr   DrawHeavySilkString
+         ldx   gPuzzleID
+         inx                         ; visible puzzle number is 1-based
+         lda   #$30                  ; padding character ('0')
+         jsr   ToASCIIString
+         +LDADDR $00F1
+         jsr   DrawHeavySilkString
+         jmp   DrawColumnSelectionIndicator
+
+;------------------------------------------------------------------------------
+; AnimatePuzzleCompleted
+;
+; in:    none
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+AnimatePuzzleCompleted
+         jsr   DrawThinLines
+         ldx   gWorldID
+         lda   kPuzzleWidths, x
+         sta   @max+1
+         ldy   #0
+         ldx   #0
+-        jsr   ScrollDown
+         inc   puzzle_offsets, x
+         lda   puzzle_offsets, x
+         cmp   #9
+         bne   -
+         inx
+         iny
+@max     cpy   #$FD                  ; SMC
+         bne   -
+         rts
+
+;------------------------------------------------------------------------------
+; DrawThinLines [private]
+;
+; in:    none
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+DrawThinLines
+         ldx   #$55
+         jsr   DrawThinLine
+         ldx   #$6B
+         ; /!\ execution falls through here
+DrawThinLine
+; in:    X = HGR row (0x00..0xBF)
+         ldy   HGRLO, x
+         sty   $FE
+         ldy   HGRHI, x
+         sty   $FF
+         ldx   gWorldID
+         ldy   kWorldRightMargins, x
+         sty   @right+1
+         ldy   GlobalLeftMargin
+         dey
+         tya
+         and   #1
+         tax
+         lda   kStartingColor, x
+-        sta   ($FE), y
+         eor   #$7F
+         iny
+@right   cpy   #$FD                  ; SMC
+         bcc   -
+         rts
+
+;------------------------------------------------------------------------------
+; EraseColumnSelectionIndicator [private]
+;
+; in:    none
+; out:   preserves X/Y
+;------------------------------------------------------------------------------
+EraseColumnSelectionIndicator
+         stx   @x+1
+         sty   @y+1
+         jsr   DrawThinLines
+@x       ldx   #$FD                  ; SMC
+@y       ldy   #$FD                  ; SMC
+         rts
+
+;------------------------------------------------------------------------------
+; DrawColumnSelectionIndicator [private]
+;
+; in:    none
+; out:   preserves X/Y
+;------------------------------------------------------------------------------
+DrawColumnSelectionIndicator
+         stx   @x+1
+         sty   @y+1
+         ldx   #$55
+         jsr   DrawOneSelectionIndicator
+         ldx   #$6B
+         jsr   DrawOneSelectionIndicator
+@x       ldx   #$FD                  ; SMC
+@y       ldy   #$FD                  ; SMC
+         rts
+
+;------------------------------------------------------------------------------
+; DrawOneSelectionIndicator [private]
+;
+; in:    none
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+DrawOneSelectionIndicator
+         lda   HGRLO, x
+         sta   $FE
+         lda   HGRHI, x
+         sta   $FF
+         ldy   GlobalLeftMargin
+         dey
+         tya
+         and   #1
+         eor   #1
+         tax
+         lda   kStartingColor, x
+         ldx   gSelectedLogicalColumn
+         beq   +
+-        iny
+         iny
+         iny
+         eor   #$7F
+         dex
+         bne   -
++        ldx   #4
+-        sta   ($FE), y
+         eor   #$7F
+         iny
+         dex
+         bne   -
          rts

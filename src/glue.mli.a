@@ -21,6 +21,7 @@ CMD_NEWLINE =  $03C9                 ; set line-by-line read mode
 CMD_READ =     $04CA                 ; read an open file
 CMD_WRITE =    $04CB                 ; write to an open file
 CMD_CLOSE =    $01CC                 ; close an open file
+CMD_FLUSH =    $01CD                 ; flush an open, written file to disk
 CMD_SETMARK =  $02CE                 ; change position in an open file
 CMD_SETEOF  =  $02D0                 ; set file size
 
@@ -28,14 +29,16 @@ CMD_SETEOF  =  $02D0                 ; set file size
 ; OpenFile
 ; open file via ProDOS MLI
 ;
-; in:  A/Y address of pathname
+; in:  stack contains 4 bytes of parameters:
+;      +1 [word] address of filename
+;      +3 [word] ProDOS file reference number
 ; out: if C set, open failed and A contains error code
 ;      if C clear, open succeeded and A contains file reference number
 ;------------------------------------------------------------------------------
 OpenFile
-         +ST16 mliparam+1
-         +LDADDR PRODOSFILEBUFFER
-         +ST16 mliparam+3
+         +PARAMS_ON_STACK 4
+         +LDPARAMPTR 1, mliparam+1   ; store filename
+         +LDPARAMPTR 3, mliparam+3   ; store address of ProDOS file buffer
          +LDADDR CMD_OPEN
          jsr   mli
          bcs   +
@@ -55,6 +58,7 @@ OpenFile
 ; out: if C set, read failed and A contains error code
 ;      if C clear, read succeeded and A contains the same
 ;        file reference number that was passed in
+;      stack set to next instruction after parameters
 ;------------------------------------------------------------------------------
 ReadFile
          +PARAMS_ON_STACK 5
@@ -70,8 +74,63 @@ ReadFile
 +        rts
 
 ;------------------------------------------------------------------------------
+; WriteFile
+; write to an open file via ProDOS MLI
+;
+; in:    A = file reference number
+;        stack contains 4 bytes of parameters:
+;          +1 [word] address of data buffer
+;          +3 [word] length of data buffer
+; out:   if C set, save failed and A contains error code
+;        if C clear, write succeeded and A contains the same file reference
+;          number that was passed in
+;------------------------------------------------------------------------------
+WriteFile
+         sta   mliparam+1            ; store file reference number
+         +PARAMS_ON_STACK 4
+         +LDPARAMPTR 1, mliparam+2   ; store data buffer address
+         +LDPARAMPTR 3, mliparam+4   ; store data buffer length
+         +LDADDR CMD_WRITE
+         jsr   mli
+         bcs   +                     ; error, A contains MLI error code
+         lda   mliparam+1            ; no error, return file reference number
++        rts
+
+;------------------------------------------------------------------------------
+; SetMarkTo0
+; set file position within an open file to the beginning of the file
+;
+; in:    A = file reference number
+; out:   if C set, save failed and A contains error code
+;        if C clear, write succeeded and A contains the same file reference
+;          number that was passed in
+;------------------------------------------------------------------------------
+SetMarkTo0
+         sta   mliparam+1            ; store file reference number
+         lda   #0
+         sta   mliparam+2
+         sta   mliparam+3
+         sta   mliparam+4
+         +LDADDR CMD_SETMARK
+         bne   mli                   ; always branches
+
+;------------------------------------------------------------------------------
+; FlushFile
+; flush an open file (actually writes it to disk, but without closing it)
+;
+; in:    A = file reference number
+; out:   if error, C set and A contains error code
+;        if success, C clear
+;------------------------------------------------------------------------------
+FlushFile
+         sta   mliparam+1            ; store file reference number
+         +LDADDR CMD_FLUSH
+         bne   mli                   ; always branches
+
+;------------------------------------------------------------------------------
 ; CloseFile
 ; close an open file
+;
 ; in:  A = file reference number
 ; out: if error, C set and A contains error code
 ;      if success, C clear
@@ -88,6 +147,8 @@ CloseFile
 ; out: does not return
 ;------------------------------------------------------------------------------
 Quit
+         lda   #0
+         jsr   CloseFile
          +LDADDR CMD_QUIT
          ; /!\ execution falls through here
 ;------------------------------------------------------------------------------
@@ -106,12 +167,12 @@ mli      sta   mlicmd     ; store command code
 mlicmd   !byte 00         ; command number
          !word mliparam   ; address of parameter table
          rts
-mliparam !byte $FE,$FE,$FE,$FE
-filetype !byte $FE        ; file type (set by MLI get_file_info)
+mliparam !byte $FD,$FD,$FD,$FD
+filetype !byte $FD        ; file type (set by MLI get_file_info)
 auxtype                   ; auxiliary file type (2 bytes, set by MLI get_file_info)
-refnum   !byte $FE        ; file refnum (set by MLI open)
-mlilen   !byte $FE,$FE    ; file length (set by MLI read)
-blocks   !byte $FE,$FE    ; blocks used (set by getvolumeinfo)
+refnum   !byte $FD        ; file refnum (set by MLI open)
+mlilen   !byte $FD,$FD    ; file length (set by MLI read)
+blocks   !byte $FD,$FD    ; blocks used (set by getvolumeinfo)
                           ; member is also used by createfile
-         !byte $FE,$FE,$FE,$FE,$FE,$FE,$FE,$FE
+         !byte $FD,$FD,$FD,$FD,$FD,$FD,$FD,$FD
                           ; used by get_file_info

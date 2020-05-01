@@ -13,8 +13,8 @@ MainMenu
 ;        C set if full screen clear & redraw is required
 ;          (will happen if key is pressed during title screen, or
 ;          if user returns to main menu from play or any other screen)
-; out:   C clear if user selected a level to play, and
-;          A = level ID
+; out:   C clear if user selected a world to play, and
+;          A = world ID
 ;        C set if user selected quit
          bcc   @noredraw
          jsr   Home
@@ -22,13 +22,13 @@ MainMenu
          sta   GlobalLeftMargin
          ldy   #3
 -        ldx   #1
-         lda   titleline1-2, y
+         lda   kTitleLine1-2, y
          jsr   DrawLargeCharacter
          inx
-         lda   titleline2-2, y
+         lda   kTitleLine2-2, y
          jsr   DrawLargeCharacter
          inx
-         lda   titleline3-2, y
+         lda   kTitleLine3-2, y
          jsr   DrawLargeCharacter
          iny
          cpy   #$0A
@@ -53,9 +53,9 @@ MainMenu
          jsr   SoftBell
          jmp   -
 @eventReturn
-         jsr   SelectLevel
+         jsr   SelectWorld
          bcs   @noselection
-         rts                         ; return to caller with A = level ID
+         rts                         ; return to caller with A = world ID
 @noselection
          jmp   MainMenu              ; C is already set so this will do a full redraw
 @eventEsc
@@ -63,27 +63,27 @@ MainMenu
          rts
 
 counter = $F2
-selectedlevel = $F3
+selectedworld = $F3
 
-SelectLevel
+SelectWorld
 ; in:    none
-; out:   C clear if level was selected, and
-;          A = 0-based level ID
-;        C set if no level was selected and A is undefined
+; out:   C clear if world was selected, and
+;          A = 0-based world ID
+;        C set if no world was selected and A is undefined
          jsr   Home
-
-         +LDADDR leveldescriptions   ; TODO update level descriptions with % complete
+         jsr   UpdateWorldPercents
+         +LDADDR worlddescriptions
          +ST16 $FE
          lda   #0
          sta   counter
-         sta   selectedlevel         ; TODO set selected level from prefs
+         sta   selectedworld         ; TODO set selected world from prefs
          lda   #6
          sta   VTAB
 -        lda   #10
          sta   HTAB
          +LD16 $FE
          ldx   counter
-         cpx   selectedlevel
+         cpx   selectedworld
          beq   +
          ldx   #20
          jsr   DrawHeavySilkBuffer
@@ -102,12 +102,12 @@ SelectLevel
          cmp   #12
          bcc   -
 
-         +PRINT_AT levelhelp, 23, 0
+         +PRINT_AT worldhelp, 23, 0
 
          bit   CLEARKBD
-@selectLevelLoop
+@selectWorldLoop
          lda   KBD
-         bpl   @selectLevelLoop
+         bpl   @selectWorldLoop
          bit   CLEARKBD
          and   #$7F
          cmp   #$0B                  ; up arrow
@@ -125,7 +125,7 @@ SelectLevel
          rts
 @eventReturn
          jsr   Home
-         lda   selectedlevel
+         lda   selectedworld
          clc
          rts
 @eventEsc
@@ -133,56 +133,56 @@ SelectLevel
          rts
 @eventLeftArrow
 @eventUpArrow
-         jsr   RedrawPreviouslySelectedLevel
-         ldx   selectedlevel
+         jsr   RedrawPreviouslySelectedWorld
+         ldx   selectedworld
          bne   +
          ldx   #12
 +        dex
-         stx   selectedlevel
-         jsr   DrawNewlySelectedLevel
-         jmp   @selectLevelLoop
+         stx   selectedworld
+         jsr   DrawNewlySelectedWorld
+         jmp   @selectWorldLoop
 @eventRightArrow
 @eventDownArrow
-         jsr   RedrawPreviouslySelectedLevel
-         ldx   selectedlevel
+         jsr   RedrawPreviouslySelectedWorld
+         ldx   selectedworld
          cpx   #11
          bne   +
          ldx   #$FF
 +        inx
-         stx   selectedlevel
-         jsr   DrawNewlySelectedLevel
-         jmp   @selectLevelLoop
+         stx   selectedworld
+         jsr   DrawNewlySelectedWorld
+         jmp   @selectWorldLoop
 
-RedrawPreviouslySelectedLevel
-         lda   selectedlevel
+RedrawPreviouslySelectedWorld
+         lda   selectedworld
          tax
          clc
          adc   #6
          sta   VTAB
          lda   #10
          sta   HTAB
-         jsr   GetLevelDescription
+         jsr   GetWorldDescription
          +LD16 $FE
          ldx   #20
          jmp   DrawHeavySilkBuffer
 
-DrawNewlySelectedLevel
-         lda   selectedlevel
+DrawNewlySelectedWorld
+         lda   selectedworld
          tax
          clc
          adc   #6
          sta   VTAB
          lda   #10
          sta   HTAB
-         jsr   GetLevelDescription
+         jsr   GetWorldDescription
          +LD16 $FE
          ldx   #20
          jmp   DrawHeavySilkBufferInverse
 
-GetLevelDescription
-; in:    X = 0-based level ID
-; out:   $FE/$FF points to level description buffer
-         +LDADDR leveldescriptions
+GetWorldDescription
+; in:    X = 0-based world ID
+; out:   $FE/$FF points to world description buffer
+         +LDADDR worlddescriptions
          +ST16 $FE
          jmp   +
 -        lda   $FE
@@ -193,6 +193,37 @@ GetLevelDescription
          inc   $FF
 +        dex
          bpl   -
+         rts
+
+worldindex=$FB
+UpdateWorldPercents
+         +LDADDR worlddescriptions
+         +ST16 $FC
+         lda   #0
+         sta   worldindex
+--       jsr   FindPackedProgressAddr
+         ldy   #$0E
+         lda   ($FE), y
+         tax
+         lda   #$20
+         jsr   ToASCIIString
+         ldx   #2
+         ldy   #17
+-        lda   $F2, x
+         sta   ($FC), y
+         dey
+         dex
+         bpl   -
+         lda   $FC
+         clc
+         adc   #20
+         sta   $FC
+         bcc   +
+         inc   $FD
++        inc   worldindex
+         lda   worldindex
+         cmp   #12
+         bne   --
          rts
 
 asterisk
@@ -214,7 +245,7 @@ disclaimer
          !byte 40
          !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."
 
-leveldescriptions
+worlddescriptions
          !raw " 4X3, EASY       0% "
          !raw " 5X3, BASIC      0% "
          !raw " 6X3, SIMPLE     0% "
@@ -228,6 +259,36 @@ leveldescriptions
          !raw " 6X5, TRICKY     0% "
          !raw " 7X5, COMPLEX    0% "
 
-levelhelp
+kWorldShortNames
+         !byte 3
+         !raw "4X3"
+         !byte 3
+         !raw "5X3"
+         !byte 3
+         !raw "6X3"
+         !byte 3
+         !raw "7X3"
+         !byte 3
+         !raw "4X4"
+         !byte 3
+         !raw "5X4"
+         !byte 3
+         !raw "6X4"
+         !byte 3
+         !raw "7X4"
+         !byte 3
+         !raw "4X5"
+         !byte 3
+         !raw "5X5"
+         !byte 3
+         !raw "6X5"
+         !byte 3
+         !raw "7X5"
+
+kDash
+         !byte 1
+         !raw "-"
+
+worldhelp
          !byte 40
          !raw "ARROWS TO SELECT, RETURN TO PLAY, OR ESC"

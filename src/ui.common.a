@@ -113,3 +113,56 @@ SoftBell
          dex
          bne   -
          rts
+
+nonZeroDigits = $EE
+paddingCharacter = $EF
+ToASCIIString
+; convert byte value to length-prefixed 3-digit decimal number as ASCII string with given padding character
+; in:    X = any number (0..255 obviously)
+;        A = padding character (e.g. '0' or ' ')
+; out:   $F1 = 0x03
+;        $F2..$F4 = ASCII digits of decimal representation
+;        clobbers $EE,$EF,$F0
+;        all flags & registers clobbered
+         sta   paddingCharacter
+         stx   $F0
+         ldx   #0
+         stx   nonZeroDigits
+         stx   $F1
+@outer   lda   #0
+         pha
+@inner   lda   $F0
+         cmp   @kPowersOfTen, x
+         bcc   @digitDone
+         sbc   @kPowersOfTen, x
+         sta   $F0
+         lda   $F1
+         sbc   #0
+         sta   $F1
+         pla
+         adc   #0
+         pha
+         jmp   @inner
+@digitDone
+         pla
+         beq   @maybeUsePaddingChar
+         inc   nonZeroDigits
+-        ora   #$30
+         bne   +                     ; always branches
+@maybeUsePaddingChar
+         cpx   #2
+         beq   -
+         ldy   nonZeroDigits
+         bne   -
+         lda   paddingCharacter
++        sta   $F2, x
+         inx
+         cpx   #$03
+         bcc   @outer
+         lda   #3                    ; length byte
+         sta   $F1
+         rts
+@kPowersOfTen
+         !byte 100
+         !byte 10
+         !byte 1

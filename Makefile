@@ -26,6 +26,7 @@ asm:
 	$(ACME) -r build/million.lst src/million.a 2>build/log
 	cp res/work.po "$(BUILDDISK)".po >>build/log
 	cp res/_FileInformation.txt build/ >>build/log
+	$(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "res/PROGRESS" >>build/log
 	$(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "build/MILLION.SYSTEM" >>build/log
 	for f in res/levels/*; do $(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "$$f" >>build/log; done
 
@@ -36,3 +37,5 @@ mount:
 	open "$(BUILDDISK)".po
 
 all: clean asm mount
+
+al: all

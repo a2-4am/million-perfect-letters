@@ -2,6 +2,24 @@
 ;(c) 2020 by 4am
 ;
 
+;------------------------------------------------------------------------------
+; YE OLDE GRAND UNIFIED MEMORY MAP
+;
+; MAIN MEMORY
+; 0300..03CF - data structures for current puzzle
+; 0400..07FF - text page (kept black for switching)
+; 0800..19FF - scroll routines (generated at startup)
+; 1A00..1BFF - HGR lookup tables
+; 1C00..1FFF - ProDOS file buffer for puzzle files
+; 2000..3FFF - hi-res page
+; 4000+      - program code (relocated to here at startup)
+; ...unused...
+; 8A00..8DFF - ProDOS file buffer for PROGRESS file
+; 8E10..8F37 - progress of puzzles in current world
+; 8F38..8FFF - address lookup table for puzzles within following world data
+; 9000..BEFF - world data (read from disk)
+;------------------------------------------------------------------------------
+
 ; soft switches
 KBD =          $C000      ; last key pressed (if any)
 STOREOFF =     $C000      ; STA then use the following 4 flags:
@@ -37,23 +55,25 @@ ROM_IN0 =      $FE89      ; SETKBD
 ROM_PR0 =      $FE93      ; SETVID
 
 ; zero page
-PARAM        = $00        ; word (used by PARAMS_ON_STACK macro, so basically everywhere)
-;PTR          = $02        ; word
-;SRC          = $04        ; word
-;DEST         = $06        ; word
-;SAVE         = $08        ; word
+PARAM        = $00        ; word (used by PARAMS_ON_STACK macro)
 HTAB         = $24        ; byte
 VTAB         = $25        ; byte
-;RNDSEED      = $4E        ; word
 
 ; application constants
+; zero page
 original_char = $ED       ; byte
 char         = $EE        ; byte
 charrow      = $EF        ; byte
+
 GENSCROLLDOWN = $0800     ; 0x0900 bytes
 GENSCROLLUP  = $1100      ; 0x0900 bytes
-HGRLO        = $1A00      ; 0xC0 bytes
-HGRHI        = $1B00      ; 0xC0 bytes
-PRODOSFILEBUFFER = $1C00  ; 0x0400 bytes
-LEVELLO      = $8F38      ; 0x64 bytes
-LEVELHI      = $8F9C      ; 0x64 bytes
+HGRLO        = $1A00      ; 0x00C0 bytes
+HGRHI        = $1B00      ; 0x00C0 bytes
+WORLDFILEBUFFER = $1C00   ; 0x0400 bytes
+
+PROGRESSFILEBUFFER = $8A00; 0x0400 bytes
+PACKEDPROGRESS = $8E10    ; 0x00C0 bytes
+PROGRESS     = $8ED0      ; 0x0068 bytes
+PUZZLELO     = $8F38      ; 0x0064 bytes
+PUZZLEHI     = $8F9C      ; 0x0064 bytes
+WORLDDATA    = $9000      ; 0x2F00 bytes max

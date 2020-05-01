@@ -10,40 +10,57 @@ row = $FD
 
          !source "src/constants.a"              ; no code
          !source "src/macros.a"                 ; no code
-         !source "src/million.init.a"           ; one-time initialization code
-         !source "src/hw.vbl.init.a"
+         !source "src/million.init.a"           ; one-time initialization code, exits via Start
+         !source "src/hw.vbl.init.a"            ; TODO hook this up
 
 FirstMover
 !pseudopc $4000 {
 Start
+         jsr   LoadProgressFromDisk
          jsr   TitlePage
-         ; C set if title sequence ended prematurely (i.e. main menu requires full redraw)
--        jsr   MainMenu
+         ; C set if main menu requires full redraw (e.g. title sequence ended prematurely)
+@GoToMainMenu
+         jsr   MainMenu
          bcc   +
          jmp   Quit
-+        sta   gLevelID
-         jsr   MaybeLoadLevelsFromDisk          ; A = level ID from 'select level' page
-         bcc   +
++        sta   gWorldID
+         jsr   MaybeLoadWorldFromDisk           ; A = world ID from selection page
+         bcc   @PlayNext
          jmp   $FF59 ; TODO
-+        ldx   gLevelID
-         lda   kLevelLeftMargins, x
-         sta   GlobalLeftMargin
-         lda   kLevelWidths, x
-         jsr   InitPuzzleStorage
-         lda   #0
+@PlayNext
+         jsr   LoadProgressFromMemory
+                                                ; A = next puzzle ID
+@Play
          sta   gPuzzleID
-         ;jsr   FindNextUnsolvedPuzzle ; TODO
-
-         jsr   ParseOnePuzzle
-
+         ldx   gWorldID
+         lda   kWorldLeftMargins, x
+         sta   GlobalLeftMargin
+         lda   kPuzzleWidths, x
+         jsr   InitPuzzleStorage
+         ldx   gPuzzleID
+         jsr   LoadPuzzleFromMemory
          lda   #0
-         sta   selected_logical_column
-         jsr   RedrawPuzzle
+         sta   gSelectedLogicalColumn
+         jsr   DrawPuzzleChrome
+         jsr   ClearAndDrawPuzzle
          jsr   AnimatePuzzleIntoPlace
          jsr   DrawColumnSelectionIndicator
          jsr   PlayEventLoop
+         cmp   #kCompletedPuzzle
+         bne   +
+         jsr   AnimatePuzzleCompleted
+         ldx   gPuzzleID
+         jsr   MarkPuzzleCompleted
+                                                ; A - next puzzle ID
+         jmp   @Play
++        cmp   #kRequestedRestart
+         bne   +
+         jsr   Home
+         lda   gPuzzleID
+         jmp   @Play
++
          sec
-         bcs   -                     ; always branches
+         bcs   @GoToMainMenu
 
          !source "src/puzzle.a"
          !source "src/hw.vbl.a"

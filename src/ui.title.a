@@ -7,19 +7,19 @@
 ; Public functions:
 ; - TitlePage
 ;
-; Public variables:
-; - titleline1
-; - titleline2
-; - titleline3
+; Public constants:
+; - kTitleLine1
+; - kTitleLine2
+; - kTitleLine3
 
 titlechar = $FD
-titleline1
+kTitleLine1
          !byte 7
          !raw "MILLION"
-titleline2
+kTitleLine2
          !byte 7
          !raw "PERFECT"
-titleline3
+kTitleLine3
          !byte 7
          !raw "LETTERS"
 
@@ -79,11 +79,11 @@ TitlePage
          beq   @line3
 @random  lda   titlechar
          jmp   +                     ; can't use a BNE because <titlechar> will actually be 0 the third time around
-@line1   lda   titleline1-2, y
+@line1   lda   kTitleLine1-2, y
          bne   +
-@line2   lda   titleline2-2, y
+@line2   lda   kTitleLine2-2, y
          bne   +
-@line3   lda   titleline3-2, y
+@line3   lda   kTitleLine3-2, y
 +        jsr   DrawLargeCharacter
          lda   titlechar
          beq   +

@@ -3,11 +3,28 @@
 ;
 ; data storage routines for puzzles
 ;
+; Public functions:
+; - InitPuzzleStorage
+; - AddLineToPuzzle
+; - AddTargetWordToPuzzle
+; - CheckForTargetWord
+; - FindLetterInColumn
+; - ScrollPuzzleDown
+; - ScrollPuzzleUp
+; - IsPuzzleComplete
+
 
 puzzle_logical_width  = $0300        ; [0x01 byte ] number of letters per word (4..7)
 puzzle_logical_height = $0301        ; [0x01 byte ] number of rows with letters (1..5)
 puzzle_offsets        = $0302        ; [0x08 bytes] how far each column has been scrolled down from top of grid
-puzzle_data           = $030A        ; [0x08 bytes] character data
+
+; 9 rows of data for current puzzle
+; each byte is one of
+; - letter with high bit off (unmatched letter)
+; - letter with high bit on (matched letter, displayed in grey)
+; - 0x00 (unused space)
+; if letters per word is less than 7, extra bytes at end of each row are guaranteed to be 0x00
+puzzle_data0          = $030A        ; [0x08 bytes] character data
 puzzle_data1          = $0312        ; [0x08 bytes]
 puzzle_data2          = $031A        ; [0x08 bytes]
 puzzle_data3          = $0322        ; [0x08 bytes]
@@ -24,17 +41,11 @@ puzzle_words          = $0353        ; [0x80 bytes]
 InitPuzzleStorage
 ; in:    A = logical puzzle width (number of letters in each word, 4..7)
          sta   puzzle_logical_width
+         ldx   #$CF
          lda   #0
-         sta   puzzle_logical_height
-         sta   puzzle_word_count
-         ldx   #8
--        sta   puzzle_offsets-1, x
+-        sta   puzzle_logical_width, x
          dex
          bne   -
-         ldx   #$7F
--        sta   puzzle_words, x
-         dex
-         bpl   -
          rts
 
 AddLineToPuzzle
@@ -47,7 +58,7 @@ AddLineToPuzzle
          tax
          ldy   #0
 -        lda   ($FE), y
-         sta   puzzle_data, x
+         sta   puzzle_data0, x
          inx
          iny
          cpy   puzzle_logical_width
@@ -152,11 +163,11 @@ ScrollPuzzleDown
          lda   puzzle_data1, y
          sta   puzzle_data2, y
 
-         lda   puzzle_data, y
+         lda   puzzle_data0, y
          sta   puzzle_data1, y
 
          lda   #0
-         sta   puzzle_data, y
+         sta   puzzle_data0, y
 
          lda   puzzle_offsets, y
          clc
@@ -179,7 +190,7 @@ ScrollPuzzleUp
          beq   @fail
 
          lda   puzzle_data1, y
-         sta   puzzle_data, y
+         sta   puzzle_data0, y
 
          lda   puzzle_data2, y
          sta   puzzle_data1, y
@@ -212,4 +223,19 @@ ScrollPuzzleUp
          clc
          rts
 @fail    sec
+         rts
+
+IsPuzzleComplete
+; out:   C clear if puzzle is complete (all letters have been matched)
+;        C set if puzzle is not yet complete
+         ldx   #$47
+-        lda   puzzle_data0, x
+         beq   @keepChecking
+         bmi   @keepChecking
+         sec
+         rts
+@keepChecking
+         dex
+         bpl   -
+         clc
          rts
