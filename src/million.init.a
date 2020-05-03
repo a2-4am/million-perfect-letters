@@ -134,6 +134,24 @@ InitScrollUp
          inx
          cpx   #$BF
          +LBNE @loadleft
+         lda   #$A9                  ; LDA #$00
+         jsr   StoreAndInc
+         lda   #$00
+         jsr   StoreAndInc
+         lda   #$99                  ; STA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+         lda   #$99                  ; STA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         clc
+         adc   #1
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
 
          lda   #$CA                  ; DEX
          jsr   StoreAndInc
@@ -258,6 +276,24 @@ InitScrollDown
 @next
          dex
          +LBNE @loadleft
+         lda   #$A9                  ; LDA #$00
+         jsr   StoreAndInc
+         lda   #$00
+         jsr   StoreAndInc
+         lda   #$99                  ; STA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
+         lda   #$99                  ; STA addr,Y
+         jsr   StoreAndInc
+         lda   HGRLO, x
+         clc
+         adc   #1
+         jsr   StoreAndInc
+         lda   HGRHI, x
+         jsr   StoreAndInc
 
          lda   #$CA                  ; DEX
          jsr   StoreAndInc
