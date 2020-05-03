@@ -29,7 +29,37 @@
          inc   @b+2
          dex
          bne   @a
-         jmp   Start
+
+         jsr   InitVBL
+
+         jsr   GetMockingboardSlot
+         cpx   #0
+         beq   +
+         ; set up MockingDuet routine with the Mockingboard slot number
+         ; so it works in any slot and not just slot 4
+         stx   MBSLOT1
+         stx   MBSLOT2
+         stx   MBSLOT3
+         stx   MBSLOT4
+         stx   MBSLOT5
+         stx   MBSLOT6
+         stx   MBSLOT7
+         stx   MBSLOT8
+         stx   MBSLOT9
+         stx   MBSLOT10
+         stx   MBSLOT11
+         stx   MBSLOT12
+         stx   MBSLOT13
+         stx   MBSLOT14
+         stx   MBSLOT15
+         stx   MBSLOT16
+         stx   MBSLOT17
+         stx   MBSLOT18
+         stx   MBSLOT19
+         stx   MBSLOT20
+         stx   MBSLOT21
+         stx   MBSLOT22
++        jmp   Start
 
 InitScrollUp
          lda   #<GENSCROLLUP

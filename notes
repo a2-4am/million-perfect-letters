@@ -1,0 +1,19 @@
+Subjective bugs:
+
+4x3-008 reuses IDEA too soon
+4x3-013 reuses OBEY too soon
+4x3-016 does not recognize TECH
+4x3-018 reuses ITEM too soon
+4x3-019 reuses ITCH too soon
+4x3-020 spells FUCH which is suggestive
+4x3-022 reuses UGLY too soon
+4x3-025 reuses KNOB too soon
+4x3-026 is too hard
+4x3-029 reuses ITCH too soon
+4x3-030 does not recognize WIMP
+4x3-031 reuses UNDO too soon
+4x3-034 does not recognize FIRS
+4x3-042 reuses KNOB too soon
+4x3-042 reuses VERY too soon
+
+5x3-004 reuses ENJOY too soon

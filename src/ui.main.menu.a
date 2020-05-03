@@ -41,17 +41,17 @@ MainMenu
          +PRINT_AT menuline_quit, 16, 10
          +PRINT_AT disclaimer, 23, 0
 
-         bit   CLEARKBD
--        lda   KBD
-         bpl   -
+@menuloop
+         +LDADDR MainMenuMusic
+         jsr   LoopSound
+         bpl   @menuloop
          bit   CLEARKBD
          and   #$7F
          cmp   #$0D                  ; Return
          beq   @eventReturn
          cmp   #$1B                  ; Esc
          beq   @eventEsc
-         jsr   SoftBell
-         jmp   -
+         jmp   @menuloop
 @eventReturn
          jsr   SelectWorld
          bcs   @noselection

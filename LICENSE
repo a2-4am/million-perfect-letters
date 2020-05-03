@@ -1,0 +1,78 @@
+Million Perfect Letters
+(c) 2020 by 4am
+
+Due to the inclusion of several GPL-licensed libraries (see below), the program
+as a whole is licensed under the GPL 3.0 or later. However, all of my original
+code is also licensed under the MIT license, meaning you are free to reuse those
+individual files in your own projects (minus the third-party sound libraries)
+without requiring GPL licensing. MIT-licensed files are tagged with a comment
+";license:MIT" on the first line of each file.
+
+Standard MIT license, which applies to all such tagged files:
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+                                       ~
+
+
+Electric Duet player
+Copyright (C) 1979-2015 by Paul Lutus
+http://arachnoid.com/administration
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+
+                                       ~
+
+
+MockingDuet player
+Copyrighth (C) 2017 by cybernesto
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+                                       ~
+
+
+The main menu music is "Cembalo", written by Aliam Lenat in 2012 and released to
+the public domain. I downloaded it (sheet music as a PDF, plus a sample MIDI
+file) from <https://www.free-scores.com/download-sheet-music.php?pdf=49126> and
+converted it to the Electric Duet file format. My conversion is also released
+to the public domain.

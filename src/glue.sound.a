@@ -1,0 +1,43 @@
+;
+; convenience functions for playing sounds through different libraries
+;
+; Public functions:
+; - InitSound
+; - LoopSound
+; - PlaySound
+;
+
+gMockingboardSlot
+         !byte $00
+
+InitSound
+         stx   gMockingboardSlot
+         cpx   #0
+         beq   @playThroughSpeaker
+         +LDADDR MockingDuet
+         bne   +                     ; always branches
+@playThroughSpeaker
+         +LDADDR ElectricDuet
++
+         +ST16 SoundLibraryDispatch
+         rts
+
+-
+         +LD16 $FE
+LoopSound
+         sec
+         +HIDE_NEXT_BYTE
+PlaySound
+         clc
+         php
+         +ST16 $1E
+         +ST16 $FE
+         bit   CLEARKBD
+SoundLibraryDispatch=*+1
+         jsr   $FDFD                 ; SMC
+         plp
+         bcc   +
+         lda   KBD
+         bpl   -
++        lda   KBD
+         rts

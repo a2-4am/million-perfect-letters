@@ -1,0 +1,41 @@
+;license:MIT
+;(c) 2019-2020 by Andrew Roughan, qkumba, 4am
+;
+; Mockingboard support functions
+;
+
+;------------------------------------------------------------------------------
+; GetMockingboardSlot
+; detect Mockingboard card by searching for 6522 timers across slots 1-7
+; access 6522 timers with deterministic cycle counts
+;
+;   based on prior art in Mockingboard Developers Toolkit
+;   with optimisation from deater/french touch
+;   also takes into account FastChip //e clock difference
+;
+; in:    /!\ ALL ACCELERATORS MUST BE OFF OR SET TO 1 MHZ
+; out:   X = 0x00 if no Mockingboard was found
+;        if card was found, X = 0xCn where n is the slot number of the card
+;        all flags & registers clobbered
+;        $80,$81 clobbered
+;------------------------------------------------------------------------------
+GetMockingboardSlot
+         lda   #$00
+         sta   $80
+         ldx   #$C1
+-        stx   $81
+         ldy   #$04                  ; 6522 #1 $Cx04
+         sec
+         lda   ($80),y               ; read 6522 timer low byte
+         sbc   ($80),y               ; second time
+         cmp   #5                    ; looking for (-)8 cycles between reads
+         beq   +
+         cmp   #6                    ; FastChip //e clock is different
+         beq   +                     ; found
+         inx
+         cpx   #$C8
+         bne   -
+         ldx   #$00                  ; not found
++        rts
+
+@timercheck
