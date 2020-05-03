@@ -124,13 +124,50 @@ CheckForTargetWord
          sec
          rts
 
+lettertofind = $FD
 FindLetterInColumn
 ; in:    A = letter (0x41..0x5A)
 ;        Y = logical column to search
-; out:   C clear if letter was found in given column
+; out:   C clear if letter was found in given column, and
+;          A = #$FF if letter was found below center column
+;          A = #$01 if letter was found above center column
+;          A = #$00 if letter was found in center column
 ;        C set if letter was not found
-;        TODO maybe calculate how far to scroll and return that?
-         sec
+;        clobbers A/X
+;        preserves Y
+;        clobbers $FD,$FE,$FF
+         ldx   #$01
+-        cmp   puzzle_data0, y
+         beq   @down
+         cmp   puzzle_data1, y
+         beq   @down
+         cmp   puzzle_data2, y
+         beq   @down
+         cmp   puzzle_data3, y
+         beq   @down
+         cmp   puzzle_data4, y
+         beq   @even
+         cmp   puzzle_data5, y
+         beq   @up
+         cmp   puzzle_data6, y
+         beq   @up
+         cmp   puzzle_data7, y
+         beq   @up
+         cmp   puzzle_data8, y
+         beq   @up
+         ora   #$80                  ; check for used letters now
+         dex
+         beq   -                     ; will only branch back once
+         sec                         ; no matches on used or unused letters, so we're done
+         rts
+@down    clc
+         lda   #$01
+         rts
+@up      clc
+         lda   #$FF
+         rts
+@even    clc
+         lda   #$00
          rts
 
 ScrollPuzzleDown

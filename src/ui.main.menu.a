@@ -76,7 +76,7 @@ SelectWorld
          +ST16 $FE
          lda   #0
          sta   counter
-         sta   selectedworld         ; TODO set selected world from prefs
+         sta   selectedworld
          lda   #6
          sta   VTAB
 -        lda   #10

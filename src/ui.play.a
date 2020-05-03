@@ -11,12 +11,16 @@
 ; - AnimatePuzzleCompleted
 ;
 
-; codes returned from PlayEventLoop to explain why the event loop ended
-kCompletedPuzzle = 1
-kRequestedRestart = 2
+; Codes returned by play event handlers
+kKeepPlaying = 0                     ; This code is checked with BEQ/BNE, so it must be 0
+kCompletedPuzzle = 1                 ; All non-zero codes will exit play event loop
+kRequestedRestart = 2                ;   with the code in A so caller knows what happened
 kPressedEsc = 3
 
 gSelectedLogicalColumn
+         !byte 0
+
+gLastKeyPressed
          !byte 0
 
 kWorldLeftMargins
@@ -31,6 +35,36 @@ kWorldRightMargins
 
 kStartingColor
          !byte $D5,$AA
+
+kPlayKeys
+         !byte $0B                   ; up arrow
+         !byte $0A                   ; down arrow
+         !byte $08                   ; left arrow
+         !byte $15                   ; right arrow
+         !byte $1B                   ; Esc
+         !byte $12                   ; Ctrl-R
+         !byte $0D                   ; Return
+         !byte $00                   ; A-Z
+
+kPlayKeyHandlersLo
+         !byte <PlayEventUpArrow
+         !byte <PlayEventDownArrow
+         !byte <PlayEventLeftArrow
+         !byte <PlayEventRightArrow
+         !byte <PlayEventEsc
+         !byte <PlayEventCtrlR
+         !byte <PlayEventReturn
+         !byte <PlayEventLetter
+
+kPlayKeyHandlersHi
+         !byte >PlayEventUpArrow
+         !byte >PlayEventDownArrow
+         !byte >PlayEventLeftArrow
+         !byte >PlayEventRightArrow
+         !byte >PlayEventEsc
+         !byte >PlayEventCtrlR
+         !byte >PlayEventReturn
+         !byte >PlayEventLetter
 
 ;------------------------------------------------------------------------------
 ; PlayEventLoop
@@ -47,29 +81,78 @@ PlayEventLoop
          bpl   -
          bit   CLEARKBD
          and   #$7F
-         cmp   #$0B                  ; up arrow
-         beq   @eventUpArrow
-         cmp   #$0A                  ; down arrow
-         beq   @eventDownArrow
-         cmp   #$08                  ; left arrow
-         beq   @eventLeftArrow
-         cmp   #$15                  ; right arrow
-         beq   @eventRightArrow
-         cmp   #$1B                  ; Esc
-         beq   @eventEsc
-         cmp   #$12                  ; Ctrl-R
-         beq   @eventCtrlR
+         sta   gLastKeyPressed
+
+         ldx   #0
+-        ldy   kPlayKeys, x
+         beq   @checkForLetter
+         cpy   gLastKeyPressed
+         beq   @dispatch
+         inx
+         bne   -
+@checkForLetter
          cmp   #$61
          bcc   +
+         cmp   #$7B
+         bcs   PlayEventLoop
          and   #$DF
+         sta   gLastKeyPressed
 +        cmp   #$41
-         bcc   +
+         bcc   PlayEventLoop
          cmp   #$5B
-         bcs   +
-         jmp   @eventLetter
-+        jmp   PlayEventLoop
+         bcs   PlayEventLoop
+@dispatch
+         lda   kPlayKeyHandlersLo, x
+         sta   @j+1
+         lda   kPlayKeyHandlersHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         beq   PlayEventLoop
+         rts
 
-@eventLeftArrow
+PlayEventEsc
+         lda   #kPressedEsc          ; caller will exit play event loop
+         rts
+
+PlayEventCtrlR
+         lda   #kRequestedRestart    ; caller will exit play event loop
+         rts
+
+PlayEventReturn
+         ldy   gSelectedLogicalColumn
+         beq   +
+         jsr   EraseColumnSelectionIndicator
+         jmp   MoveToFirstColumn
++        lda   #kKeepPlaying
+         rts
+
+PlayEventUpArrow
+         ldy   gSelectedLogicalColumn
+         jsr   ScrollPuzzleUp
+         bcs   @fail
+         jsr   ScrollUp
+         jsr   CheckForTargetWord
+         bcs   @done
+         jsr   MarkTargetWord
+         jmp   CheckForPuzzleComplete
+@fail    jsr   SoftBell
+@done    lda   #kKeepPlaying
+         rts
+
+PlayEventDownArrow
+         ldy   gSelectedLogicalColumn
+         jsr   ScrollPuzzleDown
+         bcs   @fail
+         jsr   ScrollDown
+         jsr   CheckForTargetWord
+         bcs   @done
+         jsr   MarkTargetWord
+         jmp   CheckForPuzzleComplete
+@fail    jsr   SoftBell
+@done    lda   #kKeepPlaying
+         rts
+
+PlayEventLeftArrow
          ldy   gSelectedLogicalColumn
          jsr   EraseColumnSelectionIndicator
          bne   +
@@ -77,54 +160,46 @@ PlayEventLoop
 +        dey
          sty   gSelectedLogicalColumn
          jsr   DrawColumnSelectionIndicator
-         jmp   PlayEventLoop
+         lda   #kKeepPlaying
+         rts
 
-@eventRightArrow
+PlayEventRightArrow
          ldy   gSelectedLogicalColumn
          jsr   EraseColumnSelectionIndicator
          iny
          cpy   puzzle_logical_width
          bcc   +
+MoveToFirstColumn
          ldy   #0
 +        sty   gSelectedLogicalColumn
          jsr   DrawColumnSelectionIndicator
-         jmp   PlayEventLoop
+         lda   #kKeepPlaying
+         rts
 
-@eventLetter
+PlayEventLetter
+         lda   gLastKeyPressed
          ldy   gSelectedLogicalColumn
          jsr   FindLetterInColumn
-         ; TODO
-         jmp   PlayEventLoop
-
-@eventEsc
-         lda   #kPressedEsc
+         bcc   +
+         jsr   SoftBell              ; didn't find letter, we're done
+         lda   #kKeepPlaying
          rts
-
-@eventCtrlR
-         lda   #kRequestedRestart
-         rts
-
-@eventUpArrow
-         ldy   gSelectedLogicalColumn
-         jsr   ScrollPuzzleUp
-         bcs   @fail
-         jsr   ScrollUp
-         jsr   CheckForTargetWord
-         bcc   @foundTargetWord
-         bcs   @done
-@fail    jsr   SoftBell
-@done    jmp   PlayEventLoop
-
-@eventDownArrow
-         ldy   gSelectedLogicalColumn
++        beq   PlayEventRightArrow   ; found letter but it's already on center row, we're done, exit through right arrow handler
+         bmi   @up                   ; scroll up or down ONCE, then reassess
          jsr   ScrollPuzzleDown
-         bcs   @fail
          jsr   ScrollDown
-         jsr   CheckForTargetWord
-         bcc   @foundTargetWord
-         bcs   @done
+         jmp   +
+@up      jsr   ScrollPuzzleUp
+         jsr   ScrollUp
++        jsr   CheckForTargetWord
+         bcs   PlayEventLetter       ; no word, check if more scrolling is required
+         jsr   MarkTargetWord        ; show that we've finished a word
+         jsr   CheckForPuzzleComplete
+         beq   PlayEventLetter       ; if puzzle isn't complete, check if more scrolling is required
+         rts                         ; puzzle is complete, return to caller with A = kCompletedPuzzle
 
-@foundTargetWord
+MarkTargetWord
+         ; TODO animation here?
          ldx   #4
          ldy   #0
 -        lda   puzzle_data4, y
@@ -132,9 +207,15 @@ PlayEventLoop
          iny
          cpy   puzzle_logical_width
          bne   -
+         ; TODO sound here?
+         rts
+
+CheckForPuzzleComplete
          jsr   IsPuzzleComplete
-         bcs   @done
+         bcs   +
          lda   #kCompletedPuzzle
+         +HIDE_NEXT_2_BYTES
++        lda   #kKeepPlaying
          rts
 
 ;------------------------------------------------------------------------------

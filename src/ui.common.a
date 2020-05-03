@@ -5,8 +5,6 @@
 ;
 
 GlobalLeftMargin
-         ; TODO other values for smaller puzzles
-         ; $0A for 7-letter puzzles
          !byte $0A
 
 Home
