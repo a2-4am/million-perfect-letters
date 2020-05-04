@@ -73,6 +73,7 @@ Start
          !source "src/glue.sound.a"
          !source "src/ui.title.a"
          !source "src/ui.main.menu.a"
+         !source "src/ui.about.a"
          !source "src/ui.play.a"
          !source "src/ui.common.a"
          !source "src/ui.font.courier.double.prime.a"
@@ -84,3 +85,4 @@ Start
 MainMenuMusic
          !bin    "res/M.CEMBALO"
 }
+LastMover

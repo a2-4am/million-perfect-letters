@@ -1,0 +1,189 @@
+;license:MIT
+;(c) 2019 by qkumba
+;(c) 2020 by 4am
+;
+; animated about screen
+;
+; Public functions:
+; - AboutPage
+;
+
+targetVTAB = $F0
+minHTAB = $F1
+maxHTAB = $F2
+randomchar = $F3
+revealchar = $F4
+revealindex = $F5
+revealtext = $FE
+
+revealStringsLo
+         !byte <kAboutWritten
+         !byte <kAboutTested
+         !byte <kAboutMusic
+         !byte <kAboutElectricDuet
+         !byte <kAboutMockingDuet
+         !byte 0
+revealStringsHi
+         !byte >kAboutWritten
+         !byte >kAboutTested
+         !byte >kAboutMusic
+         !byte >kAboutElectricDuet
+         !byte >kAboutMockingDuet
+         !byte 0
+
+revealVTABs
+         !byte 4
+         !byte 20
+         !byte 9
+         !byte 14
+         !byte 19
+revealHTABs
+         !byte 5
+         !byte 16
+         !byte 17
+         !byte 9
+         !byte 1
+kAboutWritten
+         !byte 14
+         !raw "WRITTEN BY 4AM"
+kAboutTested
+         !byte 20
+         !raw "PLAYTESTED BY QKUMBA"
+kAboutMusic
+         !byte 20
+         !raw "MUSIC BY ALIAM LENAT"
+kAboutElectricDuet
+         !byte 28
+         !raw "SOUND ROUTINES BY PAUL LUTUS"
+kAboutMockingDuet
+         !byte 35
+         !raw "MOCKINGBOARD ROUTINES BY CYBERNESTO"
+
+AboutPage
+         jsr   Home
+@outerloop
+         lda   #0
+         sta   revealindex
+@loop    ldx   revealindex
+         lda   revealVTABs, x
+         sta   targetVTAB
+         lda   revealHTABs, x
+         sta   minHTAB
+         lda   revealStringsHi, x
+         beq   @outerloop
+         tay
+         lda   revealStringsLo, x
+         jsr   HeavySilkReveal
+         ldx   #5
+         lda   #0
+-        jsr   WaitForKeyWithTimeout
+         bmi   @exit
+         dex
+         bpl   -
+         inc   revealindex
+         bne   @loop
+@exit    rts
+
+HeavySilkReveal
+         +ST16 revealtext
+         ldy   #0
+         lda   (revealtext), y
+         clc
+         adc   minHTAB
+         sta   maxHTAB
+RevealStartingChar=*+1
+         lda   #$41                  ; 'A'
+@outerloop
+         sta   randomchar
+         ; init RNG
+         ldy   #1
+         sty   @rnd1+1
+         dey
+         sty   @rnd2+1
+@loop
+         ; generate next value in linear feedback shift register (LFSR)
+         ldy   @rnd1+1
+         ldx   @rnd2+1
+         lsr   @rnd2+1
+         ror   @rnd1+1
+         bcc   +
+         ; feedback polynomial form #$03FC for period of 1023
+         ; https://en.wikipedia.org/wiki/Linear-feedback_shift_register
+         ; https://users.ece.cmu.edu/~koopman/lfsr/index.html
+         lda   @rnd1+1
+         eor   #$FC
+         sta   @rnd1+1
+         lda   @rnd2+1
+         eor   #$03
+         sta   @rnd2+1
+         ; calculate VTAB/HTAB from 2-byte LFSR value
++        lda   #24
+         sta   VTAB
+         dey
+         cpy   #$FF
+         bne   +
+         dex
++        tya
+-        dec   VTAB
+         bmi   @loop
+         sec
+         sbc   #40
+         bcs   -
+         dex
+         bpl   -
+         eor   #$FF
+         sta   HTAB
+         jsr   @draw
+         lda   randomchar
+         cmp   #$20
+         beq   +
+         inc   randomchar
+         cmp   #$5A
+         bcc   +
+         sbc   #$19
+         sta   randomchar
+         ; wait after drawing each letter, while checking for keypress
++        lda   #$0A
+         jsr   WaitForKeyWithTimeout
+         bmi   @exit
+         ; exit conditions for feedback polynomial
+@rnd2    lda   #0                    ; SMC
+         bne   @loop
+@rnd1    lda   #0                    ; SMC
+         cmp   #1
+         bne   @loop
+         ; loop back to do the reveal
+         lda   randomchar
+         cmp   #$20
+         beq   @exit
+         sta   RevealStartingChar
+         lda   #$20
+         bne   @outerloop            ; always branches
+@exit
+         rts
+@draw
+         ; check if this position is part of the reveal text
+         lda   VTAB
+         cmp   targetVTAB
+         bne   @drawRandom
+         lda   HTAB
+         cmp   minHTAB
+         bcc   @drawRandom
+         cmp   maxHTAB
+         bcc   @drawReveal
+@drawRandom
+         ; draw 'random' character
+         lda   #randomchar
+-        ldy   #$00
+         ldx   #$01
+         jmp   DrawHeavySilkBuffer
+@drawReveal
+         ; draw character from reveal text
+         sec
+         sbc   minHTAB
+         tay
+         iny
+         lda   (revealtext), y
+         sta   revealchar
+         lda   #revealchar
+         bne   -                     ; always branches

@@ -26,6 +26,8 @@ MainMenu
          and   #$7F
          cmp   #$0D                  ; Return
          beq   @eventReturn
+         cmp   #$01                  ; Ctrl-A
+         beq   @eventCtrlA
          cmp   #$1B                  ; Esc
          bne   @menuloop
 ;@eventEsc
@@ -35,6 +37,10 @@ MainMenu
          jsr   SelectWorld
          bcs   MainMenu
          rts                         ; return to caller with A = world ID
+@eventCtrlA
+         jsr   AboutPage
+         sec
+         bcs   MainMenu
 @drawMenuTitle
          jsr   Home
          lda   #1
@@ -56,8 +62,8 @@ MainMenu
 @drawMenuText
          +PRINT_AT asterisk, 2, 30
          +PRINT_AT menuline_play, 13, 10
-         +PRINT_AT menuline_demo, 14, 10
-         +PRINT_AT menuline_sound, 15, 10
+         +PRINT_AT menuline_sound, 14, 10
+         +PRINT_AT menuline_about, 15, 10
          +PRINT_AT menuline_quit, 16, 10
          +PRINT_AT disclaimer, 23, 0
          rts
@@ -232,12 +238,12 @@ asterisk
 menuline_play
          !byte 20
          !raw  "RETURN.....PLAY GAME"
-menuline_demo
-         !byte 20
-         !raw  "CTRL-D.....DEMO MODE"
 menuline_sound
          !byte 21
-         !raw  "CTRL-S.....SOUND (ON)"
+         !raw  "CTRL-S.....SOUND (ON) "
+menuline_about
+         !byte 16
+         !raw  "CTRL-A.....ABOUT"
 menuline_quit
          !byte 15
          !raw  "   ESC.....QUIT"
