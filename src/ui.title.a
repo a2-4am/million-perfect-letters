@@ -46,7 +46,7 @@ TitlePage
          ror   @rnd1+1
          bcc   +
 
-         ; feedback polynomial form #$0044 for period of 127
+         ; feedback polynomial form #$0041 for period of 127
 
          lda   @rnd1+1
          eor   #$41
