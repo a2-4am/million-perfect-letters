@@ -16,25 +16,9 @@ MainMenu
 ; out:   C clear if user selected a world to play, and
 ;          A = world ID
 ;        C set if user selected quit
-         bcc   @noredraw
-         jsr   Home
-         lda   #1
-         sta   GlobalLeftMargin
-         ldy   #3
--        ldx   #1
-         lda   kTitleLine1-2, y
-         jsr   DrawLargeCharacter
-         inx
-         lda   kTitleLine2-2, y
-         jsr   DrawLargeCharacter
-         inx
-         lda   kTitleLine3-2, y
-         jsr   DrawLargeCharacter
-         iny
-         cpy   #$0A
-         bne   -
-@noredraw
-         jsr   @drawMenuText
+         bcc   +
+         jsr   @drawMenuTitle
++        jsr   @drawMenuText
 @menuloop
          +LDADDR MainMenuMusic
          jsr   LoopSound
@@ -51,6 +35,24 @@ MainMenu
          jsr   SelectWorld
          bcs   MainMenu
          rts                         ; return to caller with A = world ID
+@drawMenuTitle
+         jsr   Home
+         lda   #1
+         sta   GlobalLeftMargin
+         ldy   #3
+-        ldx   #1
+         lda   kTitleLine1-2, y
+         jsr   DrawLargeCharacter
+         inx
+         lda   kTitleLine2-2, y
+         jsr   DrawLargeCharacter
+         inx
+         lda   kTitleLine3-2, y
+         jsr   DrawLargeCharacter
+         iny
+         cpy   #$0A
+         bne   -
+         rts
 @drawMenuText
          +PRINT_AT asterisk, 2, 30
          +PRINT_AT menuline_play, 13, 10
