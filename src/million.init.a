@@ -19,16 +19,21 @@
          jsr   InitScrollUp
          jsr   InitScrollDown
 
-         ldx   #$20
-         ldy   #0
-@a       lda   FirstMover,y
-@b       sta   $4000,y
-         iny
-         bne   @a
-         inc   @a+2
-         inc   @b+2
-         dex
-         bne   @a
+-        inc   FM+2
+         inc   FMDEST+2
+         lda   FM+2
+         cmp   #>LastMover
+         bcc   -
+         ldx   #$00
+FM       lda   FirstMover, x
+FMDEST   sta   $4000, x
+         inx
+         bne   FM
+         dec   FM+2
+         dec   FMDEST+2
+         lda   FMDEST+2
+         cmp   #$40
+         bcs   FM
 
          jsr   InitVBL
 
