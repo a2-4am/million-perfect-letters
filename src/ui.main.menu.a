@@ -34,32 +34,30 @@ MainMenu
          cpy   #$0A
          bne   -
 @noredraw
+         jsr   @drawMenuText
+@menuloop
+         +LDADDR MainMenuMusic
+         jsr   LoopSound
+         bit   CLEARKBD
+         and   #$7F
+         cmp   #$0D                  ; Return
+         beq   @eventReturn
+         cmp   #$1B                  ; Esc
+         bne   @menuloop
+;@eventEsc
+         sec
+         rts
+@eventReturn
+         jsr   SelectWorld
+         bcs   MainMenu
+         rts                         ; return to caller with A = world ID
+@drawMenuText
          +PRINT_AT asterisk, 2, 30
          +PRINT_AT menuline_play, 13, 10
          +PRINT_AT menuline_demo, 14, 10
          +PRINT_AT menuline_sound, 15, 10
          +PRINT_AT menuline_quit, 16, 10
          +PRINT_AT disclaimer, 23, 0
-
-@menuloop
-         +LDADDR MainMenuMusic
-         jsr   LoopSound
-         bpl   @menuloop
-         bit   CLEARKBD
-         and   #$7F
-         cmp   #$0D                  ; Return
-         beq   @eventReturn
-         cmp   #$1B                  ; Esc
-         beq   @eventEsc
-         jmp   @menuloop
-@eventReturn
-         jsr   SelectWorld
-         bcs   @noselection
-         rts                         ; return to caller with A = world ID
-@noselection
-         jmp   MainMenu              ; C is already set so this will do a full redraw
-@eventEsc
-         sec
          rts
 
 counter = $F2
