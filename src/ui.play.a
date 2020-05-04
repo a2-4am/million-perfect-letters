@@ -281,10 +281,14 @@ AnimatePuzzleIntoPlace
 ; in:    none
 ; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
+kLevel
+         !byte 5
+         !raw  "LEVEL"
 DrawPuzzleChrome
          +PRINT_AT kTitleLine1, 0, 0
          +PRINT_AT kTitleLine2, 1, 0
          +PRINT_AT kTitleLine3, 2, 0
+         +PRINT_AT kLevel, 0, 34
          +LDADDR kWorldShortNames
          +ST16 $FE
          lda   gWorldID
@@ -296,9 +300,9 @@ DrawPuzzleChrome
          bcc   +
          inc   $FF
 +
-         lda   #4
+         lda   #2
          sta   VTAB
-         lda   #0
+         lda   #33
          sta   HTAB
          +LD16 $FE
          jsr   DrawHeavySilkString
