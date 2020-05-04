@@ -61,10 +61,11 @@ MainMenu
          rts
 @drawMenuText
          +PRINT_AT asterisk, 2, 30
-         +PRINT_AT menuline_play, 13, 10
-         +PRINT_AT menuline_sound, 14, 10
-         +PRINT_AT menuline_about, 15, 10
-         +PRINT_AT menuline_quit, 16, 10
+         +PRINT_AT version, 11, 26
+         +PRINT_AT menuline_play, 15, 10
+         +PRINT_AT menuline_sound, 16, 10
+         +PRINT_AT menuline_about, 17, 10
+         +PRINT_AT menuline_quit, 18, 10
          +PRINT_AT disclaimer, 23, 0
          rts
 
@@ -235,6 +236,9 @@ UpdateWorldPercents
 asterisk
          !byte 1
          !byte "*"
+version
+         !byte 4
+         !raw  "V1.0"
 menuline_play
          !byte 20
          !raw  "RETURN.....PLAY GAME"
