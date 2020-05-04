@@ -14,16 +14,42 @@ Home
          bit   FULLGFX
          bit   HIRES
          bit   TEXTMODE
-         ldx   #$20
-         stx   @erase+2
          ldy   #$00
          tya
-@erase   sta   $2000,y
+-        sta   $2000, y
+         sta   $2100, y
+         sta   $2200, y
+         sta   $2300, y
+         sta   $2400, y
+         sta   $2500, y
+         sta   $2600, y
+         sta   $2700, y
+         sta   $2800, y
+         sta   $2900, y
+         sta   $2A00, y
+         sta   $2B00, y
+         sta   $2C00, y
+         sta   $2D00, y
+         sta   $2E00, y
+         sta   $2F00, y
+         sta   $3000, y
+         sta   $3100, y
+         sta   $3200, y
+         sta   $3300, y
+         sta   $3400, y
+         sta   $3500, y
+         sta   $3600, y
+         sta   $3700, y
+         sta   $3800, y
+         sta   $3900, y
+         sta   $3A00, y
+         sta   $3B00, y
+         sta   $3C00, y
+         sta   $3D00, y
+         sta   $3E00, y
+         sta   $3F00, y
          iny
-         bne   @erase
-         inc   @erase+2
-         dex
-         bne   @erase
+         bne   -
          bit   GFXMODE
          rts
 
