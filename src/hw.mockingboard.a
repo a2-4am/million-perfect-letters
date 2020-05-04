@@ -37,5 +37,3 @@ GetMockingboardSlot
          bne   -
          ldx   #$00                  ; not found
 +        rts
-
-@timercheck
