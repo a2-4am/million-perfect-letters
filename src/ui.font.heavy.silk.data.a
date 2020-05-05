@@ -265,7 +265,7 @@ HeavySilkRow4
          !byte $B0        ; 3
          !byte $BF        ; 4
          !byte $B0        ; 5
-         !byte $A3        ; 6
+         !byte $B3        ; 6
          !byte $8E        ; 7
          !byte $B3        ; 8
          !byte $B0        ; 9
