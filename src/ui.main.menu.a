@@ -20,6 +20,7 @@ MainMenu
          jsr   @drawMenuTitle
 +        jsr   @drawMenuText
 @menuloop
+         bit   CLEARKBD
          +LDADDR MainMenuMusic
          jsr   LoopSound
          bit   CLEARKBD
@@ -28,6 +29,8 @@ MainMenu
          beq   @eventReturn
          cmp   #$01                  ; Ctrl-A
          beq   @eventCtrlA
+         cmp   #$13                  ; Ctrl-S
+         beq   @eventCtrlS
          cmp   #$1B                  ; Esc
          bne   @menuloop
 ;@eventEsc
@@ -41,6 +44,13 @@ MainMenu
          jsr   AboutPage
          sec
          bcs   MainMenu
+@eventCtrlS
+         lda   gSoundPref
+         eor   #$01
+         sta   gSoundPref
+         jsr   ReinitSoundAfterPrefChange
+         clc
+         bcc   MainMenu
 @drawMenuTitle
          jsr   Home
          lda   #1
@@ -64,6 +74,13 @@ MainMenu
          +PRINT_AT version, 11, 26
          +PRINT_AT menuline_play, 15, 10
          +PRINT_AT menuline_sound, 16, 10
+         lda   gSoundPref
+         beq   @theSoundOfSilence
+         +LDADDR menuline_sound_on
+         bne   +                     ; always branches
+@theSoundOfSilence
+         +LDADDR menuline_sound_off
++        jsr   DrawHeavySilkString
          +PRINT_AT menuline_about, 17, 10
          +PRINT_AT menuline_quit, 18, 10
          +PRINT_AT disclaimer, 23, 0
@@ -243,8 +260,14 @@ menuline_play
          !byte 20
          !raw  "RETURN.....PLAY GAME"
 menuline_sound
-         !byte 21
-         !raw  "CTRL-S.....SOUND (ON) "
+         !byte 18
+         !raw  "CTRL-S.....SOUND ("
+menuline_sound_on
+         !byte 4
+         !raw  "ON) "
+menuline_sound_off
+         !byte 4
+         !raw  "OFF)"
 menuline_about
          !byte 16
          !raw  "CTRL-A.....ABOUT"

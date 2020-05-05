@@ -120,24 +120,6 @@ LogicalColumnToPhysicalColumn
          tay
          rts
 
-;------------------------------------------------------------------------------
-; SoftBell
-;
-; in:    none
-; out:   all registers and flags clobbered
-;------------------------------------------------------------------------------
-SoftBell
-         ldx   #32
--        lda   #2
-         jsr   ROM_WAIT
-         bit   SPEAKER
-         lda   #33
-         jsr   ROM_WAIT
-         bit   SPEAKER
-         dex
-         bne   -
-         rts
-
 nonZeroDigits = $EE
 paddingCharacter = $EF
 ToASCIIString

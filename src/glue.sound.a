@@ -3,21 +3,33 @@
 ;
 ; Public functions:
 ; - InitSound
+; - ReinitSoundAfterPrefChange
 ; - LoopSound
 ; - PlaySound
+; - SoftBell
 ;
 
 gMockingboardSlot
-         !byte $00
+         !byte 0
 
+gSoundPref
+         !byte 1                     ; 0 = no sound, 1 = sound
+
+ReinitSoundAfterPrefChange
+         ldx   gMockingboardSlot
 InitSound
          stx   gMockingboardSlot
+         lda   gSoundPref
+         beq   @theSoundOfSilence
          cpx   #0
          beq   @playThroughSpeaker
          +LDADDR MockingDuet
          bne   +                     ; always branches
 @playThroughSpeaker
          +LDADDR ElectricDuet
+         bne   +                     ; always branches
+@theSoundOfSilence
+         +LDADDR Silence
 +
          +ST16 SoundLibraryDispatch
          rts
@@ -32,7 +44,6 @@ PlaySound
          php
          +ST16 $1E
          +ST16 $FE
-         bit   CLEARKBD
 SoundLibraryDispatch=*+1
          jsr   $FDFD                 ; SMC
          plp
@@ -40,4 +51,24 @@ SoundLibraryDispatch=*+1
          lda   KBD
          bpl   -
 +        lda   KBD
-         rts
+Silence  rts
+
+;------------------------------------------------------------------------------
+; SoftBell
+;
+; in:    none
+; out:   all registers and flags clobbered
+;------------------------------------------------------------------------------
+SoftBell
+         lda   gSoundPref
+         beq   +
+         ldx   #32
+-        lda   #2
+         jsr   ROM_WAIT
+         bit   SPEAKER
+         lda   #33
+         jsr   ROM_WAIT
+         bit   SPEAKER
+         dex
+         bne   -
++        rts
