@@ -58,7 +58,10 @@ AddLineToPuzzle
          tax
          ldy   #0
 -        lda   ($FE), y
-         sta   puzzle_data0, x
+         cmp   #$20
+         bne   +
+         lda   #0
++        sta   puzzle_data0, x
          inx
          iny
          cpy   puzzle_logical_width
