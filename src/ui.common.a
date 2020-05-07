@@ -3,6 +3,19 @@
 ;
 ; common graphics functions
 ;
+; Public functions:
+; - Home
+; - WaitForKeyWithTimeout
+; - ScrollDown
+; - ScrollDownBy
+; - ScrollUp
+; - ScrollUpBy
+; - LogicalColumnToPhysicalColumn
+; - ToASCIIString
+;
+; Public variables:
+; - GlobalLeftMargin
+;
 
 GlobalLeftMargin
          !byte $0A
@@ -69,11 +82,14 @@ WaitForKeyWithTimeout
 @exit    rts
 
 ScrollDown
+         lda   #$16
+ScrollDownBy
 ; in:    Y = logical column to scroll
+;        A = number of HGR rows to scroll
 ; out:   X/Y preserved
          stx   @x+1
          sty   @y+1
-         ldx   #$16
+         tax
          jsr   LogicalColumnToPhysicalColumn
          jsr   InitScrollStorage
          jsr   WaitForVBL
@@ -84,11 +100,14 @@ ScrollDown
          rts
 
 ScrollUp
+         lda   #$16
+ScrollUpBy
 ; in:    Y = logical column to scroll
+;        A = number of HGR rows to scroll
 ; out:   X/Y preserved
          stx   @x+1
          sty   @y+1
-         ldx   #$16
+         tax
          jsr   LogicalColumnToPhysicalColumn
          jsr   InitScrollStorage
          jsr   WaitForVBL
@@ -99,6 +118,7 @@ ScrollUp
          rts
 
 InitScrollStorage
+; out:   preserves X/Y
          lda   #$00
          sta   $FC
          sta   $FD

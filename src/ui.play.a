@@ -199,11 +199,22 @@ PlayEventLetter
          rts                         ; puzzle is complete, return to caller with A = kCompletedPuzzle
 
 MarkTargetWord
-         ; TODO animation here?
          ldx   #4
          ldy   #0
 -        lda   puzzle_data4, y
          jsr   DrawLargeCharacter
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         ldy   #0
+-        lda   #1
+         jsr   ScrollUpBy
+         iny
+         cpy   puzzle_logical_width
+         bne   -
+         ldy   #0
+-        lda   #1
+         jsr   ScrollDownBy
          iny
          cpy   puzzle_logical_width
          bne   -
