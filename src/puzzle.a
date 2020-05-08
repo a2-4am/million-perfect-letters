@@ -178,10 +178,9 @@ ScrollPuzzleDown
 ; out:   C clear if puzzle was scrolled down
 ;        C set if puzzle was already as far down as it can go
 ;        preserves X/Y
-         lda   puzzle_offsets, y
-         cmp   #4
-         beq   @fail
-
+         lda   puzzle_data3, y
+         beq   +
+ScrollPuzzleDownUnconditionally
          lda   puzzle_data7, y
          sta   puzzle_data8, y
 
@@ -215,7 +214,7 @@ ScrollPuzzleDown
          sta   puzzle_offsets, y
          clc
          rts
-@fail    sec
++        sec
          rts
 
 ScrollPuzzleUp
@@ -223,11 +222,8 @@ ScrollPuzzleUp
 ; out:   C clear if puzzle was scrolled up
 ;        C set if puzzle was already as far up as it can go
 ;        preserves X/Y
-         lda   puzzle_offsets, y
-         clc
-         adc   puzzle_logical_height
-         cmp   #5
-         beq   @fail
+         lda   puzzle_data5, y
+         beq   +
 
          lda   puzzle_data1, y
          sta   puzzle_data0, y
@@ -262,7 +258,7 @@ ScrollPuzzleUp
          sta   puzzle_offsets, y
          clc
          rts
-@fail    sec
++        sec
          rts
 
 IsPuzzleComplete

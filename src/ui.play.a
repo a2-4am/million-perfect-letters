@@ -275,7 +275,7 @@ AnimatePuzzleIntoPlace
          sty   @max+1
          ldy   #0
 --       ldx   #4
--        jsr   ScrollPuzzleDown
+-        jsr   ScrollPuzzleDownUnconditionally
          jsr   ScrollDown
          dex
          bne   -
