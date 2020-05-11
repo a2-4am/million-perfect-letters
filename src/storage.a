@@ -54,31 +54,18 @@ MaybeLoadWorldFromDisk
          clc
          rts
 +        sta   @filename+1
-         jsr   OpenFile
-         !word @filename
-         !word WORLDFILEBUFFER
-         bcs   @exit
-         sta   @refnum
-         jsr   ReadFile
-@refnum  !byte $FD                   ; SMC
+         jsr   LoadFile1Shot
+         !word @filename             ; address of filename
          !word WORLDDATA             ; load address
-         !word $2F00                 ; maximum length to read
-         php
-         bcs   @closeAndPopStatus
-         plp
+         !word $2F00                 ; maximum length
+         !word WORLDFILEBUFFER       ; address of ProDOS file buffer
+         bcs   @exit
          jsr   @PreParseWorldData
          cpx   #100
          bne   +
          clc
          +HIDE_NEXT_BYTE
 +        sec
-         php
-         lda   @filename+1
-         sta   @fileLoaded
-@closeAndPopStatus
-         lda   @refnum
-         jsr   CloseFile
-         plp
 @exit    rts
 @fileLoaded
          !byte $FF                   ; no file
@@ -399,4 +386,4 @@ FindPackedProgressAddr
          sta   $FE
          bcc   +
          inc   $FF
-         rts
++        rts

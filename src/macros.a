@@ -51,29 +51,26 @@
 }
 
 ; for functions that take parameters on the stack
-; load a 16-bit value from the parameters on the stack into A (low) and Y (high)
-; (assumes PARAMS_ON_STACK was used first)
-!macro   LDPARAM .offset {
-         ldy   #.offset
-         lda   (PARAM),y
-         pha
-         iny
-         lda   (PARAM),y
-         tay
-         pla
-}
-
-; for functions that take parameters on the stack
-; load a 16-bit value from the parameters on the stack into A (low) and Y (high)
+; load a 16-bit value from the parameters on the stack
 ; then store it as new source
 ; (assumes PARAMS_ON_STACK was used first)
-!macro   LDPARAMPTR .offset,.dest {
+!macro   LDPARAM16 .offset,.dest {
          ldy   #.offset
          lda   (PARAM),y
          sta   .dest
          iny
          lda   (PARAM),y
          sta   .dest+1
+}
+
+; for functions that take parameters on the stack
+; load an 8-bit value from the parameters on the stack
+; then store it as new source
+; (assumes PARAMS_ON_STACK was used first)
+!macro   LDPARAM8 .offset,.dest {
+         ldy   #.offset
+         lda   (PARAM),y
+         sta   .dest
 }
 
 ; load the address of .ptr into A (low) and Y (high)

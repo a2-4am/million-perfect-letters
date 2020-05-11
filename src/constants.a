@@ -70,6 +70,7 @@ GENSCROLLUP  = $1100      ; 0x0900 bytes
 HGRLO        = $1A00      ; 0x00C0 bytes
 HGRHI        = $1B00      ; 0x00C0 bytes
 WORLDFILEBUFFER = $1C00   ; 0x0400 bytes
+PREFSFILEBUFFER = $1C00   ; 0x0400 bytes (note: same as WORLDFILEBUFFER)
 
 PROGRESSFILEBUFFER = $8A00; 0x0400 bytes
 PACKEDPROGRESS = $8E10    ; 0x00C0 bytes

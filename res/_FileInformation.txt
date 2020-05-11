@@ -1,2 +1,3 @@
 MILLION.SYSTEM=Type(FF),AuxType(2000),Access(C3)
 PROGRESS=Type(06),AuxType(8E10),Access(C3)
+PREFS=Type(04),AuxType(0000),Access(C3)

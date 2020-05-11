@@ -1,0 +1,73 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+
+PREFSFILE !byte prefs_e-prefs_b
+prefs_b
+          !text "PREFS"
+prefs_e
+
+PREFSVER !byte $31
+PREFSSOUND !byte $FD
+PREFSCHEAT !byte $FD
+         !byte $0D
+         !raw "|||",$0D
+         !raw "||+---CHEAT (0/1)",$0D
+         !raw "|+---SOUND (0/1)",$0D
+         !raw "+---PREFS VERSION (DO NOT CHANGE)",$0D
+PREFSWRITELEN = *-PREFSVER
+PREFSREADLEN = $0003
+CURRENTVER   = $31                   ; ASCII '1'
+DEFAULTSOUND = $31                   ; ASCII '1'
+DEFAULTCHEAT = $30                   ; ASCII '0'
+
+;------------------------------------------------------------------------------
+; LoadPrefs
+; load settings from disk
+;------------------------------------------------------------------------------
+LoadPrefs
+         jsr   LoadFile1Shot
+         !word PREFSFILE
+         !word PREFSVER
+         !word PREFSREADLEN
+         !word PREFSFILEBUFFER
+         bcc   @deserialize
+-        lda   #CURRENTVER           ; no prefs, use default values
+         sta   PREFSVER
+         lda   #DEFAULTSOUND
+         sta   PREFSSOUND
+         lda   #DEFAULTCHEAT
+         sta   PREFSCHEAT
+@deserialize
+         lda   PREFSVER
+         cmp   #CURRENTVER
+         bne   -                     ; bad prefs version, use defaults
+         lda   PREFSSOUND
+         cmp   #$30
+         beq   +
+         cmp   #$31
+         bne   -                     ; bad sound option, use defaults
++        and   #$01
+         sta   gSoundPref
+         rts
+
+;------------------------------------------------------------------------------
+; SavePrefs
+; save settings to disk
+;------------------------------------------------------------------------------
+SavePrefs
+         lda   #CURRENTVER
+         sta   PREFSVER
+         lda   gSoundPref
+         ora   #$30
+         sta   PREFSSOUND
+         lda   #DEFAULTCHEAT
+         sta   PREFSCHEAT
+         jsr   SaveFile1Shot
+         !word PREFSFILE
+         !byte $04                   ; text file
+         !word $0000                 ; no aux filetype
+         !word PREFSVER
+         !word PREFSWRITELEN
+         !word PREFSFILEBUFFER
+         rts

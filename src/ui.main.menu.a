@@ -48,6 +48,7 @@ MainMenu
          lda   gSoundPref
          eor   #$01
          sta   gSoundPref
+         jsr   SavePrefs
          jsr   ReinitSoundAfterPrefChange
          clc
          bcc   MainMenu
@@ -255,7 +256,7 @@ asterisk
          !byte "*"
 version
          !byte 4
-         !raw  "V1.0"
+         !raw  "V0.1"
 menuline_play
          !byte 20
          !raw  "RETURN.....PLAY GAME"

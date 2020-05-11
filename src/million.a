@@ -19,6 +19,7 @@
 FirstMover
 !pseudopc $4000 {
 Start
+         jsr   LoadPrefs
          jsr   InitSound
          jsr   LoadProgressFromDisk
          jsr   TitlePage
@@ -66,16 +67,17 @@ Start
          sec
          bcs   @GoToMainMenu
 
-         !source "src/puzzle.a"
-         !source "src/hw.vbl.a"
-         !source "src/hw.storage.a"
-         !source "src/glue.mli.a"
-         !source "src/glue.sound.a"
          !source "src/ui.title.a"
          !source "src/ui.main.menu.a"
          !source "src/ui.about.a"
          !source "src/ui.play.a"
          !source "src/ui.common.a"
+         !source "src/puzzle.a"
+         !source "src/storage.a"
+         !source "src/prefs.a"
+         !source "src/glue.sound.a"
+         !source "src/glue.mli.a"
+         !source "src/hw.vbl.a"
          !source "src/ui.font.courier.double.prime.a"
          !source "src/ui.font.courier.double.prime.data.a"
          !source "src/ui.font.heavy.silk.a"
