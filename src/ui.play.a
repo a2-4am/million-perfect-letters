@@ -199,6 +199,8 @@ PlayEventLetter
          rts                         ; puzzle is complete, return to caller with A = kCompletedPuzzle
 
 MarkTargetWord
+; in:    none
+; out:   all registers & flags clobbered
          ldx   #4
          ldy   #0
 -        lda   puzzle_data4, y
@@ -218,10 +220,11 @@ MarkTargetWord
          iny
          cpy   puzzle_logical_width
          bne   -
-         ; TODO sound here?
-         rts
+         jmp   PlayNextChord
 
 CheckForPuzzleComplete
+; in:    none
+; out:   A = play event loop code
          jsr   IsPuzzleComplete
          bcs   +
          lda   #kCompletedPuzzle

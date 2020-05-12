@@ -42,6 +42,7 @@ Start
          sta   GlobalLeftMargin
          lda   kPuzzleWidths, x
          jsr   InitPuzzleStorage
+         jsr   InitPuzzleSound
          ldx   gPuzzleID
          jsr   LoadPuzzleFromMemory
          lda   #0
@@ -85,6 +86,15 @@ Start
          !source "src/electric.duet.a"
          !source "src/mockingduet.a"
 MainMenuMusic
-         !bin    "res/M.CEMBALO"
+         !bin    "res/M.SICILIENNE"
+;         !bin    "res/M.CEMBALO"
+M2
+         !bin    "res/M.2"
+M5
+         !bin    "res/M.5"
+M1
+         !bin    "res/M.1"
+M6
+         !bin    "res/M.6"
 }
 LastMover

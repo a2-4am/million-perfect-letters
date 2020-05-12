@@ -42,28 +42,40 @@ FMDEST   sta   $4000, x
          beq   +
          ; set up MockingDuet routine with the Mockingboard slot number
          ; so it works in any slot and not just slot 4
-         stx   MBSLOT1
-         stx   MBSLOT2
-         stx   MBSLOT3
-         stx   MBSLOT4
-         stx   MBSLOT5
-         stx   MBSLOT6
-         stx   MBSLOT7
-         stx   MBSLOT8
-         stx   MBSLOT9
-         stx   MBSLOT10
-         stx   MBSLOT11
-         stx   MBSLOT12
-         stx   MBSLOT13
-         stx   MBSLOT14
-         stx   MBSLOT15
-         stx   MBSLOT16
-         stx   MBSLOT17
-         stx   MBSLOT18
-         stx   MBSLOT19
-         stx   MBSLOT20
-         stx   MBSLOT21
-         stx   MBSLOT22
+         stx   MBSLOT01+2
+         stx   MBSLOT02+2
+         stx   MBSLOT03+2
+         stx   MBSLOT04+2
+         stx   MBSLOT05+2
+         stx   MBSLOT06+2
+         stx   MBSLOT07+2
+         stx   MBSLOT08+2
+         stx   MBSLOT09+2
+         stx   MBSLOT10+2
+         stx   MBSLOT11+2
+         stx   MBSLOT12+2
+         stx   MBSLOT13+2
+         stx   MBSLOT14+2
+         stx   MBSLOT15+2
+         stx   MBSLOT16+2
+         stx   MBSLOT17+2
+         stx   MBSLOT18+2
+         stx   MBSLOT19+2
+         stx   MBSLOT20+2
+         stx   MBSLOT21+2
+         stx   MBSLOT22+2
+         stx   MBSLOT23+2
+         stx   MBSLOT24+2
+         stx   MBSLOT25+2
+         stx   MBSLOT26+2
+         stx   MBSLOT27+2
+         stx   MBSLOT28+2
+         stx   MBSLOT29+2
+         stx   MBSLOT30+2
+         stx   MBSLOT31+2
+         stx   MBSLOT32+2
+         stx   MBSLOT33+2
+         stx   MBSLOT34+2
 +        jmp   Start
 
 InitScrollUp

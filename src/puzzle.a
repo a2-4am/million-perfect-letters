@@ -87,10 +87,14 @@ AddTargetWordToPuzzle
          inc   puzzle_word_count
          rts
 
+unused_counter=$FD
 CheckForTargetWord
 ; in:    none
 ; out:   C clear if a target word was found on row 4
 ;        C set if no target word found
+;        note: will return C=set if target word was found but all letters were
+;          already used (i.e. word had already been found before but player
+;          shifted letters out and back)
          +LDADDR puzzle_words
          +ST16 $FE
          ldx   #0                    ; word index
@@ -106,12 +110,17 @@ CheckForTargetWord
          ; found matching word
          ; set high bit on all letters in row 4
          ldy   #0
+         sty   unused_counter        ; to see if all letters were already used (i.e. this word was already found)
 -        lda   puzzle_data4, y
+         bmi   +
+         inc   unused_counter
          ora   #$80
          sta   puzzle_data4, y
-         iny
++        iny
          cpy   puzzle_logical_width
          bne   -
+         lda   unused_counter
+         beq   @notfound
          clc
          rts
 @nextword
@@ -124,6 +133,7 @@ CheckForTargetWord
 +        inx
          cpx   puzzle_word_count
          bne   @checkword
+@notfound
          sec
          rts
 

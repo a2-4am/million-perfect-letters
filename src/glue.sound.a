@@ -15,6 +15,34 @@ gMockingboardSlot
 gSoundPref
          !byte 1                     ; 0 = no sound, 1 = sound
 
+progressionIndex                     ; [byte][private]
+         !byte 0
+
+kProgressionsByWorld                 ; chord progression to use on each world (index=world)
+         !word k251Progression
+         !word k251Progression
+         !word k251Progression
+         !word k251Progression
+         !word k6251Progression
+         !word k6251Progression
+         !word k6251Progression
+         !word k6251Progression
+         !word 0
+         !word 0
+         !word 0
+         !word 0
+k251Progression
+         !byte 3
+         !word M2
+         !word M5
+         !word M1
+k6251Progression
+         !byte 4
+         !word M6
+         !word M2
+         !word M5
+         !word M1
+
 ReinitSoundAfterPrefChange
          ldx   gMockingboardSlot
 InitSound
@@ -52,6 +80,35 @@ SoundLibraryDispatch=*+1
          bpl   -
 +        lda   KBD
 Silence  rts
+
+InitPuzzleSound
+         lda   #$FF
+         sta   progressionIndex
+         rts
+
+PlayNextChord
+         ; TODO
+         rts
+         inc   progressionIndex
+         lda   gWorldID
+         asl
+         tax
+         lda   kProgressionsByWorld, x
+         sta   $FE
+         inx
+         lda   kProgressionsByWorld, x
+         sta   $FF
+         lda   progressionIndex
+         asl
+         tay
+         iny
+         lda   ($FE), y
+         pha
+         iny
+         lda   ($FE), y
+         tay
+         pla
+         jmp   PlaySound
 
 ;------------------------------------------------------------------------------
 ; SoftBell

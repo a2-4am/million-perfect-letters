@@ -25,8 +25,8 @@ gWorldID                             ; a world is a group of 100 similar puzzles
 gPuzzleID                            ; ID of current puzzle within the current world (100 puzzles per world, 0-based)
          !byte $FD                   ; 0x00..0x63
 
-kPuzzleWidths                        ; width in letters of the puzzles in each world
-         !byte 4,5,6,7               ; (every puzzle in a world is the same width)
+kPuzzleWidths                        ; width in letters of the puzzles in each world (index=world)
+         !byte 4,5,6,7               ; note: every puzzle in a world is the same width
          !byte 4,5,6,7
          !byte 4,5,6,7
 
