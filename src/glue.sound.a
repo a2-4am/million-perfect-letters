@@ -27,21 +27,27 @@ kProgressionsByWorld                 ; chord progression to use on each world (i
          !word k6251Progression
          !word k6251Progression
          !word k6251Progression
-         !word 0
-         !word 0
-         !word 0
-         !word 0
+         !word k16251Progression
+         !word k16251Progression
+         !word k16251Progression
+         !word k16251Progression
 k251Progression
-         !byte 3
-         !word M2
-         !word M5
-         !word M1
+         !byte 2
+         !word M_ii
+         !word M_V
 k6251Progression
+         !byte 3
+         !word M_vi6
+         !word M_ii
+         !word M_V
+k16251Progression
          !byte 4
-         !word M6
-         !word M2
-         !word M5
-         !word M1
+         !word M_I
+         !word M_vi6
+         !word M_ii
+         !word M_V
+kFinalChord
+         !word M_I_LONG
 
 ReinitSoundAfterPrefChange
          ldx   gMockingboardSlot
@@ -87,9 +93,6 @@ InitPuzzleSound
          rts
 
 PlayNextChord
-         ; TODO
-         rts
-         inc   progressionIndex
          lda   gWorldID
          asl
          tax
@@ -98,7 +101,13 @@ PlayNextChord
          inx
          lda   kProgressionsByWorld, x
          sta   $FF
-         lda   progressionIndex
+         inc   progressionIndex
+         ldy   #0
+         lda   ($FE), y
+         cmp   progressionIndex
+         bne   +
+         dec   progressionIndex
++        lda   progressionIndex
          asl
          tay
          iny
@@ -109,6 +118,14 @@ PlayNextChord
          tay
          pla
          jmp   PlaySound
+
+PlayFinalChord
+; out:   preserves A
+         pha
+         +LD16 kFinalChord
+         jsr   PlaySound
+         pla
+         rts
 
 ;------------------------------------------------------------------------------
 ; SoftBell

@@ -176,6 +176,7 @@ MoveToFirstColumn
          lda   #kKeepPlaying
          rts
 
+-        jsr   PlayNextChord
 PlayEventLetter
          lda   gLastKeyPressed
          ldy   gSelectedLogicalColumn
@@ -195,8 +196,8 @@ PlayEventLetter
          bcs   PlayEventLetter       ; no word, check if more scrolling is required
          jsr   MarkTargetWord        ; show that we've finished a word
          jsr   CheckForPuzzleComplete
-         beq   PlayEventLetter       ; if puzzle isn't complete, check if more scrolling is required
-         rts                         ; puzzle is complete, return to caller with A = kCompletedPuzzle
+         beq   -                     ; if puzzle isn't complete, check if more scrolling is required
+         jmp   PlayFinalChord        ; puzzle is complete, play final sound and return to caller with A = kCompletedPuzzle
 
 MarkTargetWord
 ; in:    none
@@ -220,7 +221,7 @@ MarkTargetWord
          iny
          cpy   puzzle_logical_width
          bne   -
-         jmp   PlayNextChord
+         rts
 
 CheckForPuzzleComplete
 ; in:    none

@@ -87,14 +87,10 @@ Start
          !source "src/mockingduet.a"
 MainMenuMusic
          !bin    "res/M.SICILIENNE"
-;         !bin    "res/M.CEMBALO"
-M2
-         !bin    "res/M.2"
-M5
-         !bin    "res/M.5"
-M1
-         !bin    "res/M.1"
-M6
-         !bin    "res/M.6"
+M_ii     !bin    "res/M.II"
+M_V      !bin    "res/M.V"
+M_I      !bin    "res/M.I"
+M_I_LONG !bin    "res/M.I.LONG"
+M_vi6    !bin    "res/M.VI6"
 }
 LastMover
