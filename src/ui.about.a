@@ -50,8 +50,8 @@ kAboutTested
          !byte 20
          !raw "PLAYTESTED BY QKUMBA"
 kAboutMusic
-         !byte 20
-         !raw "MUSIC BY ALIAM LENAT"
+         !byte 22
+         !raw "MUSIC BY GABRIEL FAURE"
 kAboutElectricDuet
          !byte 28
          !raw "SOUND ROUTINES BY PAUL LUTUS"
