@@ -93,6 +93,8 @@ InitPuzzleSound
          rts
 
 PlayNextChord
+; out:   preserves A
+         pha
          lda   gWorldID
          asl
          tax
@@ -117,7 +119,9 @@ PlayNextChord
          lda   ($FE), y
          tay
          pla
-         jmp   PlaySound
+         jsr   PlaySound
+         pla
+         rts
 
 PlayFinalChord
 ; out:   preserves A

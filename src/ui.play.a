@@ -129,28 +129,28 @@ PlayEventReturn
 PlayEventUpArrow
          ldy   gSelectedLogicalColumn
          jsr   ScrollPuzzleUp
-         bcs   @fail
+         bcs   CantMove
          jsr   ScrollUp
-         jsr   CheckForTargetWord
-         bcs   @done
-         jsr   MarkTargetWord
-         jmp   CheckForPuzzleComplete
-@fail    jsr   SoftBell
-@done    lda   #kKeepPlaying
-         rts
+         jmp   CheckAfterArrow
 
 PlayEventDownArrow
          ldy   gSelectedLogicalColumn
          jsr   ScrollPuzzleDown
-         bcs   @fail
-         jsr   ScrollDown
-         jsr   CheckForTargetWord
-         bcs   @done
-         jsr   MarkTargetWord
-         jmp   CheckForPuzzleComplete
-@fail    jsr   SoftBell
-@done    lda   #kKeepPlaying
+         bcc   +
+CantMove
+         jsr   SoftBell
+KeepPlaying
+         lda   #kKeepPlaying
          rts
++        jsr   ScrollDown
+CheckAfterArrow
+         jsr   CheckForTargetWord
+         bcs   KeepPlaying
+         jsr   MarkTargetWord
+         jsr   CheckForPuzzleComplete
+         bne   +
+         jmp   PlayNextChord
++        jmp   PlayFinalChord
 
 PlayEventLeftArrow
          ldy   gSelectedLogicalColumn
