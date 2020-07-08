@@ -256,7 +256,7 @@ asterisk
          !byte "*"
 version
          !byte 4
-         !raw  "V0.1"
+         !raw  "V0.3"
 menuline_play
          !byte 20
          !raw  "RETURN.....PLAY GAME"

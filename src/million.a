@@ -72,6 +72,7 @@ Start
          !source "src/ui.main.menu.a"
          !source "src/ui.about.a"
          !source "src/ui.play.a"
+         !source "src/ui.message.a"
          !source "src/ui.common.a"
          !source "src/puzzle.a"
          !source "src/storage.a"

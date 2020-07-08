@@ -33,10 +33,10 @@ kWorldRightMargins
          !byte 27,28,30,31
          !byte 27,28,30,31
 
-kStartingColor
+kThinLineStartingColor
          !byte $D5,$AA
 
-kPlayKeys
+kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo/Hi arrays
          !byte $0B                   ; up arrow
          !byte $0A                   ; down arrow
          !byte $08                   ; left arrow
@@ -82,6 +82,7 @@ PlayEventLoop
          bit   CLEARKBD
          and   #$7F
          sta   gLastKeyPressed
+         jsr   HideMessage
 
          ldx   #0
 -        ldy   kPlayKeys, x
@@ -287,6 +288,13 @@ AnimatePuzzleIntoPlace
 @max     cpy   #$FD                  ; SMC
          bne   --
          rts
+;         +LDADDR test_message
+;         jsr   SetNextMessage
+;         jmp   ShowMessage
+;
+;test_message
+;         !byte 18
+;         !raw  "  PRESS ? FOR HELP"
 
 ;------------------------------------------------------------------------------
 ; DrawPuzzleChrome
@@ -380,7 +388,7 @@ DrawThinLine
          tya
          and   #1
          tax
-         lda   kStartingColor, x
+         lda   kThinLineStartingColor, x
 -        sta   ($FE), y
          eor   #$7F
          iny
@@ -436,7 +444,7 @@ DrawOneSelectionIndicator
          and   #1
          eor   #1
          tax
-         lda   kStartingColor, x
+         lda   kThinLineStartingColor, x
          ldx   gSelectedLogicalColumn
          beq   +
 -        iny

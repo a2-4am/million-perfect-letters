@@ -1,0 +1,56 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; utility functions for showing modeless auto-disappearing messages during play
+;
+; Public functions:
+; - SetNextMessage
+; - ShowMessage
+; - HideMessage
+;
+
+showingMessage                       ; [byte][private]
+         !byte 0                     ; 1 = currently showing message, 0 = not
+
+currentMessage                       ; [private]
+         !byte 20
+         !raw  "01234567890123456789"
+
+noMessage                            ; [private]
+         !byte 20
+         !raw  "                    "
+
+SetNextMessage
+; copies a new message into private buffer
+; (does not display the new message on screen)
+; in:    A/Y points to length-prefixed string (max 20 characters)
+         +ST16 $FE
+         ldy   #0
+         lda   ($FE), y
+         tay                         ; Y = string length
+-        lda   ($FE), y
+         sta   currentMessage, y
+         dey
+         bpl   -
+         rts
+
+HideMessage
+; out:   preserves A
+; safe to call multiple times, does nothing if no message is showing
+         pha
+         lda   showingMessage
+         beq   +
+         +PRINT_AT noMessage, 7, 10
+         lda   #0
+         sta   showingMessage
++        pla
+         rts
+
+ShowMessage
+; should really only call once
+; will clear message before showing the new one, so there may be a small flicker
+         jsr   HideMessage
+         +PRINT_AT currentMessage, 7, 10
+         lda   #1
+         sta   showingMessage
+         rts

@@ -47,8 +47,8 @@ kAboutWritten
          !byte 14
          !raw "WRITTEN BY 4AM"
 kAboutTested
-         !byte 20
-         !raw "PLAYTESTED BY QKUMBA"
+         !byte 21
+         !raw "PLAYTESTED BY OPTION8"
 kAboutMusic
          !byte 22
          !raw "MUSIC BY GABRIEL FAURE"
