@@ -1,0 +1,79 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; display help screen
+;
+; Public functions:
+; - HelpEventLoop
+;
+
+;0123456789012345678901234567890123456789
+;
+;
+;
+;       MOVE COLUMNS TO FORM WORDS
+;
+;       USE ALL LETTERS TO ADVANCE
+;
+;
+;                    *
+;
+;
+;LEFT/RIGHT ARROWS..........SELECT COLUMN
+;
+;UP/DOWN ARROWS...............MOVE COLUMN
+;
+;A-Z.......................MOVE TO LETTER
+;
+;CTRL-R....................RESTART PUZZLE
+;
+;ESC............................MAIN MENU
+;
+;
+;
+;
+
+help_info1
+         !byte 26
+         !raw  "MOVE COLUMNS TO FORM WORDS"
+help_info2
+         !byte 26
+         !raw  "USE ALL LETTERS TO ADVANCE"
+help_leftright
+         !byte 40
+         !raw  "LEFT/RIGHT ARROWS..........SELECT COLUMN"
+help_updown
+         !byte 40
+         !raw  "UP/DOWN ARROWS...............MOVE COLUMN"
+help_az
+         !byte 40
+         !raw  "A-Z.......................MOVE TO LETTER"
+help_ctrlr
+         !byte 40
+         !raw  "CTRL-R....................RESTART PUZZLE"
+help_esc
+         !byte 40
+         !raw  "ESC............................MAIN MENU"
+
+HelpEventLoop
+         jsr   Home
+         jsr   DrawHelpText
+         bit   CLEARKBD
+-        lda   KBD
+         bpl   -
+         bit   CLEARKBD
+         sec
+         rts
+
+DrawHelpText
+         bit   TEXTMODE
+         +PRINT_AT help_info1, 3, 7
+         +PRINT_AT help_info2, 5, 7
+         +PRINT_AT asterisk, 8, 20
+         +PRINT_AT help_leftright, 11, 0
+         +PRINT_AT help_updown, 13, 0
+         +PRINT_AT help_az, 15, 0
+         +PRINT_AT help_ctrlr, 17, 0
+         +PRINT_AT help_esc, 19, 0
+         bit   GFXMODE
+         rts

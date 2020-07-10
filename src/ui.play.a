@@ -44,6 +44,8 @@ kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo
          !byte $1B                   ; Esc
          !byte $12                   ; Ctrl-R
          !byte $0D                   ; Return
+         !byte $2F                   ; /
+         !byte $3F                   ; ?
          !byte $00                   ; A-Z
 
 kPlayKeyHandlersLo
@@ -54,6 +56,8 @@ kPlayKeyHandlersLo
          !byte <PlayEventEsc
          !byte <PlayEventCtrlR
          !byte <PlayEventReturn
+         !byte <PlayEventQuestion
+         !byte <PlayEventQuestion
          !byte <PlayEventLetter
 
 kPlayKeyHandlersHi
@@ -64,6 +68,8 @@ kPlayKeyHandlersHi
          !byte >PlayEventEsc
          !byte >PlayEventCtrlR
          !byte >PlayEventReturn
+         !byte >PlayEventQuestion
+         !byte >PlayEventQuestion
          !byte >PlayEventLetter
 
 ;------------------------------------------------------------------------------
@@ -177,6 +183,15 @@ MoveToFirstColumn
          ldx   #kKeepPlaying
          rts
 
+PlayEventQuestion
+         jsr   HelpEventLoop
+         jsr   Home
+         jsr   DrawPuzzleChrome
+         jsr   DrawPuzzle
+         jsr   DrawColumnSelectionIndicator
+         ldx   #kKeepPlaying
+         rts
+
 -        jsr   PlayNextChord
 PlayEventLetter
          lda   gLastKeyPressed
@@ -235,14 +250,14 @@ CheckForPuzzleComplete
          rts
 
 ;------------------------------------------------------------------------------
-; ClearAndDrawPuzzle
-; clears screen and draws current puzzle (but not column selection indicator or
+; DrawPuzzle
+; draws letters in current puzzle (but not column selection indicator or
 ; other UI elements)
 ;
 ; in:    none
 ; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
-ClearAndDrawPuzzle
+DrawPuzzle
          jsr   DrawThinLines
          +LDADDR puzzle_data0
          +ST16 $FE
@@ -260,10 +275,8 @@ ClearAndDrawPuzzle
          bcc   +
          inc   $FF
 +        inx
-         cpx   puzzle_logical_height
+         cpx   #9
          bne   --
-
-         bit   GFXMODE
          rts
 
 ;------------------------------------------------------------------------------
@@ -285,13 +298,14 @@ AnimatePuzzleIntoPlace
          iny
 @max     cpy   #$FD                  ; SMC
          bne   --
-         jmp   ShowMessage
-
+         jsr   ShowMessage
+         +LDADDR noMessage
+         jmp   SetNextMessage
 ;
 ;------------------------------------------------------------------------------
 ; DrawPuzzleChrome
 ; draw all elements on puzzle screen that are not the actual puzzle
-; (e.g. column selection indicator, game title, help text)
+; (game title, level)
 ;
 ; in:    none
 ; out:   all registers and flags clobbered
@@ -328,8 +342,7 @@ DrawPuzzleChrome
          lda   #$30                  ; padding character ('0')
          jsr   ToASCIIString
          +LDADDR $00F1
-         jsr   DrawHeavySilkString
-         jmp   DrawColumnSelectionIndicator
+         jmp   DrawHeavySilkString
 
 ;------------------------------------------------------------------------------
 ; AnimatePuzzleCompleted

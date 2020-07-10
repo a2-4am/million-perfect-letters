@@ -19,6 +19,8 @@ kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandle
          !byte $03                   ; Ctrl-C
          !byte $53                   ; S/s
          !byte $13                   ; Ctrl-S
+         !byte $2F                   ; /
+         !byte $3F                   ; ?
          !byte $51                   ; Q/q
          !byte $11                   ; Ctrl-Q
          !byte $1B                   ; Esc
@@ -30,6 +32,8 @@ kMainMenuKeyHandlersLo
          !byte <MainMenuEventC
          !byte <MainMenuEventS
          !byte <MainMenuEventS
+         !byte <MainMenuEventQuestion
+         !byte <MainMenuEventQuestion
          !byte <MainMenuEventQ
          !byte <MainMenuEventQ
          !byte <MainMenuEventQ
@@ -40,6 +44,8 @@ kMainMenuKeyHandlersHi
          !byte >MainMenuEventC
          !byte >MainMenuEventS
          !byte >MainMenuEventS
+         !byte >MainMenuEventQuestion
+         !byte >MainMenuEventQuestion
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
@@ -85,6 +91,10 @@ MainMenuEventLoop
 @j       jsr   $FDFD                 ; SMC
          beq   MainMenuEventLoop
          rts
+
+MainMenuEventQuestion
+         jsr   HelpEventLoop
+         jmp   +
 
 MainMenuEventReturn
          jsr   SelectWorld
@@ -137,17 +147,18 @@ DrawMainMenuTitle
 DrawMainMenuText
          +PRINT_AT asterisk, 2, 30
          +PRINT_AT version, 11, 26
-         +PRINT_AT menuline_play, 15, 10
-         +PRINT_AT menuline_sound, 16, 10
+         +PRINT_AT mainmenu_play, 15, 10
+         +PRINT_AT mainmenu_sound, 16, 10
          lda   gSoundPref
          beq   @theSoundOfSilence
-         +LDADDR menuline_sound_on
+         +LDADDR mainmenu_sound_on
          bne   +                     ; always branches
 @theSoundOfSilence
-         +LDADDR menuline_sound_off
+         +LDADDR mainmenu_sound_off
 +        jsr   DrawHeavySilkString
-         +PRINT_AT menuline_about, 17, 10
-         +PRINT_AT menuline_quit, 18, 10
+         +PRINT_AT mainmenu_about, 17, 10
+         +PRINT_AT mainmenu_help, 18, 10
+         +PRINT_AT mainmenu_quit, 19, 10
          +PRINT_AT disclaimer, 23, 0
          rts
 
@@ -321,24 +332,27 @@ asterisk
 version
          !byte 4
          !raw  "V0.3"
-menuline_play
+mainmenu_play
          !byte 20
          !raw  "RETURN.....PLAY GAME"
-menuline_sound
+mainmenu_sound
          !byte 18
-         !raw  "CTRL-S.....SOUND ("
-menuline_sound_on
+         !raw  "     S.....SOUND ("
+mainmenu_sound_on
          !byte 4
          !raw  "ON) "
-menuline_sound_off
+mainmenu_sound_off
          !byte 4
          !raw  "OFF)"
-menuline_about
+mainmenu_about
          !byte 18
-         !raw  "CTRL-C.....CREDITS"
-menuline_quit
+         !raw  "     C.....CREDITS"
+mainmenu_help
          !byte 15
-         !raw  "CTRL-Q.....QUIT"
+         !raw  "     ?.....HELP"
+mainmenu_quit
+         !byte 15
+         !raw  "     Q.....QUIT"
 disclaimer
          !byte 40
          !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."

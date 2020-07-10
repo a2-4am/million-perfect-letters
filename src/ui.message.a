@@ -9,19 +9,6 @@
 ; - HideMessage
 ;
 
-;0123456789012345678901
-;   press ? for help
-;
-;0123456789012345678901
-;letters can be reused
-;
-;0123456789012345678901
-;3-word solution exists
-;
-;0123456789012345678901
-;     don't panic!
- ;
-
 showingMessage                       ; [byte][private]
          !byte 0                     ; 1 = currently showing message, 0 = not
 
