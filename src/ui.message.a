@@ -9,29 +9,58 @@
 ; - HideMessage
 ;
 
+;0123456789012345678901
+;   press ? for help
+;
+;0123456789012345678901
+;letters can be reused
+;
+;0123456789012345678901
+;3-word solution exists
+;
+;0123456789012345678901
+;     don't panic!
+ ;
+
 showingMessage                       ; [byte][private]
          !byte 0                     ; 1 = currently showing message, 0 = not
 
 currentMessage                       ; [private]
-         !byte 20
-         !raw  "01234567890123456789"
+         !byte 40
+         !raw  "                                        "
 
 noMessage                            ; [private]
-         !byte 20
-         !raw  "                    "
+         !byte 40
+         !raw  "                                        "
 
 SetNextMessage
 ; copies a new message into private buffer
 ; (does not display the new message on screen)
-; in:    A/Y points to length-prefixed string (max 20 characters)
+; if new message is shorter than max length, it will be centered
+; in:    A/Y points to length-prefixed string
          +ST16 $FE
-         ldy   #0
-         lda   ($FE), y
-         tay                         ; Y = string length
--        lda   ($FE), y
+         ldy   noMessage
+-        lda   noMessage, y
          sta   currentMessage, y
          dey
          bpl   -
+         ldy   #0
+         lda   ($FE), y              ; A = string length
+         tay
+         clc
+         adc   #1
+         lsr
+         sta   $FD
+         lda   currentMessage
+         lsr
+         clc
+         adc   $FD
+         tax
+-        lda   ($FE), y
+         sta   currentMessage, x
+         dex
+         dey
+         bne   -
          rts
 
 HideMessage
@@ -40,7 +69,7 @@ HideMessage
          pha
          lda   showingMessage
          beq   +
-         +PRINT_AT noMessage, 7, 10
+         +PRINT_AT noMessage, 7, 0
          lda   #0
          sta   showingMessage
 +        pla
@@ -50,7 +79,7 @@ ShowMessage
 ; should really only call once
 ; will clear message before showing the new one, so there may be a small flicker
          jsr   HideMessage
-         +PRINT_AT currentMessage, 7, 10
+         +PRINT_AT currentMessage, 7, 0
          lda   #1
          sta   showingMessage
          rts

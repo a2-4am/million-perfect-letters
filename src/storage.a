@@ -191,6 +191,7 @@ LoadPuzzleFromMemory
 @lineLoop
          +INCADDR $FE
 @addLine
+                                     ; ($FE) -> characters for 1 line of this puzzle (no prefix)
          jsr   AddLineToPuzzle
          ldx   gWorldID
          lda   kPuzzleWidths, x
@@ -199,13 +200,15 @@ LoadPuzzleFromMemory
          sta   $FE
          bcc   +
          inc   $FF
-+
-         ldy   #0
++        ldy   #0
          lda   ($FE), y
-         cmp   #$2C                  ; ,
-         beq   @lineLoop
+         cmp   #$2C                  ; ','
+         beq   @lineLoop             ; if next byte is ',' then there is another line so loop back to parse it
+                                     ; otherwise the next byte is a delimiter between lines and target words
+                                     ; (probably '|' but we don't actually check it)
 @targetWordLoop
          +INCADDR $FE
+                                     ; ($FE) -> characters for 1 target word of this puzzle (no prefix)
          jsr   AddTargetWordToPuzzle
          ldx   gWorldID
          lda   kPuzzleWidths, x
@@ -214,12 +217,31 @@ LoadPuzzleFromMemory
          sta   $FE
          bcc   +
          inc   $FF
-+
-         ldy   #0
++        ldy   #0
          lda   ($FE), y
-         cmp   #$2C                  ; ,
-         beq   @targetWordLoop
-         rts
+         cmp   #$2C                  ; ','
+         beq   @targetWordLoop       ; if next byte is ',' then there is another target word so loop back to parse it
+         cmp   #$7C                  ; if next byte is '|' then there is a message, otherwise we're done
+         bne   @exit
+
+         +INCADDR $FE
+@messageLoop
+         lda   ($FE), y
+         cmp   #$0A
+         beq   @setMessage
+         cmp   #$0D
+         beq   @setMessage
+         iny
+         sta   @messageBuffer, y
+         bne   @messageLoop
+@setMessage
+         sty   @messageBuffer
+         +LDADDR @messageBuffer
+         jsr   SetNextMessage
+@exit    rts
+@messageBuffer
+         !byte 40
+         !raw  "                                        "
 
 ;------------------------------------------------------------------------------
 ; HasPuzzleBeenCompleted

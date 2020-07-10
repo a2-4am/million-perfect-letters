@@ -285,15 +285,9 @@ AnimatePuzzleIntoPlace
          iny
 @max     cpy   #$FD                  ; SMC
          bne   --
-         rts
-;         +LDADDR test_message
-;         jsr   SetNextMessage
-;         jmp   ShowMessage
-;
-;test_message
-;         !byte 18
-;         !raw  "  PRESS ? FOR HELP"
+         jmp   ShowMessage
 
+;
 ;------------------------------------------------------------------------------
 ; DrawPuzzleChrome
 ; draw all elements on puzzle screen that are not the actual puzzle
