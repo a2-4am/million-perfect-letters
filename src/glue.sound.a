@@ -93,7 +93,8 @@ InitPuzzleSound
          rts
 
 PlayNextChord
-; out:   preserves A
+; out:   preserves X
+         txa
          pha
          lda   gWorldID
          asl
@@ -121,14 +122,17 @@ PlayNextChord
          pla
          jsr   PlaySound
          pla
+         tax
          rts
 
 PlayFinalChord
-; out:   preserves A
+; out:   preserves X
+         txa
          pha
          +LD16 kFinalChord
          jsr   PlaySound
          pla
+         tax
          rts
 
 ;------------------------------------------------------------------------------

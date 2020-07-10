@@ -7,7 +7,44 @@
 ; - MainMenu
 ;
 
-MainMenu
+; Codes returned by event handlers
+kStayOnMainMenu = 0
+kRequestedQuit = 1
+kStartPlaying = 2
+
+kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandlersLo/Hi arrays
+                                     ; except for last byte ($00) which doesn't need an associated handler
+         !byte $0D                   ; Return
+         !byte $43                   ; C/c
+         !byte $03                   ; Ctrl-C
+         !byte $53                   ; S/s
+         !byte $13                   ; Ctrl-S
+         !byte $51                   ; Q/q
+         !byte $11                   ; Ctrl-Q
+         !byte $1B                   ; Esc
+         !byte $00
+
+kMainMenuKeyHandlersLo
+         !byte <MainMenuEventReturn
+         !byte <MainMenuEventC
+         !byte <MainMenuEventC
+         !byte <MainMenuEventS
+         !byte <MainMenuEventS
+         !byte <MainMenuEventQ
+         !byte <MainMenuEventQ
+         !byte <MainMenuEventQ
+
+kMainMenuKeyHandlersHi
+         !byte >MainMenuEventReturn
+         !byte >MainMenuEventC
+         !byte >MainMenuEventC
+         !byte >MainMenuEventS
+         !byte >MainMenuEventS
+         !byte >MainMenuEventQ
+         !byte >MainMenuEventQ
+         !byte >MainMenuEventQ
+
+MainMenuEventLoop
 ; in:    C clear if screen is already cleared and title is already drawn
 ;          (will happen if animated title screen runs to completion)
 ;        C set if full screen clear & redraw is required
@@ -17,42 +54,68 @@ MainMenu
 ;          A = world ID
 ;        C set if user selected quit
          bcc   +
-         jsr   @drawMenuTitle
-+        jsr   @drawMenuText
-@menuloop
+         jsr   DrawMainMenuTitle
++        jsr   DrawMainMenuText
+
          bit   CLEARKBD
          +LDADDR MainMenuMusic
          jsr   LoopSound
          bit   CLEARKBD
          and   #$7F
-         cmp   #$0D                  ; Return
-         beq   @eventReturn
-         cmp   #$01                  ; Ctrl-A
-         beq   @eventCtrlA
-         cmp   #$13                  ; Ctrl-S
-         beq   @eventCtrlS
-         cmp   #$1B                  ; Esc
-         bne   @menuloop
-;@eventEsc
-         sec
+         cmp   #$7B
+         bcs   +
+         cmp   #$61
+         bcc   +
+         sbc   #$20                  ; a-z -> A-Z
++        sta   gLastKeyPressed
+
+         ldx   #0
+-        ldy   kMainMenuKeys, x
+         beq   MainMenuEventLoop
+         cpy   gLastKeyPressed
+         beq   @dispatch
+         inx
+         bne   -
+         beq   MainMenuEventLoop
+@dispatch
+         lda   kMainMenuKeyHandlersLo, x
+         sta   @j+1
+         lda   kMainMenuKeyHandlersHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         beq   MainMenuEventLoop
          rts
-@eventReturn
+
+MainMenuEventReturn
          jsr   SelectWorld
-         bcs   MainMenu
-         rts                         ; return to caller with A = world ID
-@eventCtrlA
+         bcs   +                     ; in next event handler
+         ldx   #kStartPlaying        ; Z=0 so caller will exit main menu event loop
+                                     ; C=0 so grand-caller will start playing
+                                     ; A=world ID (from SelectWorld)
+         rts
+
+MainMenuEventC
          jsr   AboutPage
-         sec
-         bcs   MainMenu
-@eventCtrlS
++        ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
+         sec                         ; C=1 so caller will do a full screen refresh
+         rts
+
+MainMenuEventS
          lda   gSoundPref
          eor   #$01
          sta   gSoundPref
          jsr   SavePrefs
          jsr   ReinitSoundAfterPrefChange
-         clc
-         bcc   MainMenu
-@drawMenuTitle
+         ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
+         clc                         ; C=0 so caller will only do a partial screen refresh
+         rts
+
+MainMenuEventQ
+         ldx   #kRequestedQuit       ; Z=0 so caller will exit main menu event loop
+         sec                         ; C=1 so grand-caller will call MLI quit
+         rts
+
+DrawMainMenuTitle
          jsr   Home
          lda   #1
          sta   GlobalLeftMargin
@@ -70,7 +133,8 @@ MainMenu
          cpy   #$0A
          bne   -
          rts
-@drawMenuText
+
+DrawMainMenuText
          +PRINT_AT asterisk, 2, 30
          +PRINT_AT version, 11, 26
          +PRINT_AT menuline_play, 15, 10
@@ -270,11 +334,11 @@ menuline_sound_off
          !byte 4
          !raw  "OFF)"
 menuline_about
-         !byte 16
-         !raw  "CTRL-A.....ABOUT"
+         !byte 18
+         !raw  "CTRL-C.....CREDITS"
 menuline_quit
          !byte 15
-         !raw  "   ESC.....QUIT"
+         !raw  "CTRL-Q.....QUIT"
 disclaimer
          !byte 40
          !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."

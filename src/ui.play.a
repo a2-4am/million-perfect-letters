@@ -11,11 +11,11 @@
 ; - AnimatePuzzleCompleted
 ;
 
-; Codes returned by play event handlers
+; Codes returned by event handlers
 kKeepPlaying = 0                     ; This code is checked with BEQ/BNE, so it must be 0
 kCompletedPuzzle = 1                 ; All non-zero codes will exit play event loop
-kRequestedRestart = 2                ;   with the code in A so caller knows what happened
-kPressedEsc = 3
+kRequestedRestart = 2                ;   with the code in X so caller knows what happened
+kReturnToMainMenu = 3
 
 gSelectedLogicalColumn
          !byte 0
@@ -72,7 +72,7 @@ kPlayKeyHandlersHi
 ;
 ; in:    puzzle has been loaded into memory, drawn on screen, animated, &c.
 ;        and is ready to play
-; out:   A = reason why event loop ended (see list above)
+; out:   X = reason why event loop ended (see list above)
 ;        all other registers and flags clobbered
 ;------------------------------------------------------------------------------
 PlayEventLoop
@@ -112,11 +112,11 @@ PlayEventLoop
          rts
 
 PlayEventEsc
-         lda   #kPressedEsc          ; caller will exit play event loop
+         ldx   #kReturnToMainMenu    ; caller will exit play event loop
          rts
 
 PlayEventCtrlR
-         lda   #kRequestedRestart    ; caller will exit play event loop
+         ldx   #kRequestedRestart    ; caller will exit play event loop
          rts
 
 PlayEventReturn
@@ -124,7 +124,7 @@ PlayEventReturn
          beq   +
          jsr   EraseColumnSelectionIndicator
          jmp   MoveToFirstColumn
-+        lda   #kKeepPlaying
++        ldx   #kKeepPlaying
          rts
 
 PlayEventUpArrow
@@ -141,7 +141,7 @@ PlayEventDownArrow
 CantMove
          jsr   SoftBell
 KeepPlaying
-         lda   #kKeepPlaying
+         ldx   #kKeepPlaying
          rts
 +        jsr   ScrollDown
 CheckAfterArrow
@@ -161,7 +161,7 @@ PlayEventLeftArrow
 +        dey
          sty   gSelectedLogicalColumn
          jsr   DrawColumnSelectionIndicator
-         lda   #kKeepPlaying
+         ldx   #kKeepPlaying
          rts
 
 PlayEventRightArrow
@@ -174,7 +174,7 @@ MoveToFirstColumn
          ldy   #0
 +        sty   gSelectedLogicalColumn
          jsr   DrawColumnSelectionIndicator
-         lda   #kKeepPlaying
+         ldx   #kKeepPlaying
          rts
 
 -        jsr   PlayNextChord
@@ -184,7 +184,7 @@ PlayEventLetter
          jsr   FindLetterInColumn
          bcc   +
          jsr   SoftBell              ; didn't find letter, we're done
-         lda   #kKeepPlaying
+         ldx   #kKeepPlaying
          rts
 +        beq   PlayEventRightArrow   ; found letter but it's already on center row, we're done, exit through right arrow handler
          bmi   @up                   ; scroll up or down ONCE, then reassess
@@ -198,7 +198,7 @@ PlayEventLetter
          jsr   MarkTargetWord        ; show that we've finished a word
          jsr   CheckForPuzzleComplete
          beq   -                     ; if puzzle isn't complete, check if more scrolling is required
-         jmp   PlayFinalChord        ; puzzle is complete, play final sound and return to caller with A = kCompletedPuzzle
+         jmp   PlayFinalChord        ; puzzle is complete, play final sound and return to caller with X = kCompletedPuzzle
 
 MarkTargetWord
 ; in:    none
@@ -226,12 +226,12 @@ MarkTargetWord
 
 CheckForPuzzleComplete
 ; in:    none
-; out:   A = play event loop code
+; out:   X = play event loop code
          jsr   IsPuzzleComplete
          bcs   +
-         lda   #kCompletedPuzzle
-         +HIDE_NEXT_2_BYTES
-+        lda   #kKeepPlaying
+         ldx   #kCompletedPuzzle
+         rts
++        ldx   #kKeepPlaying
          rts
 
 ;------------------------------------------------------------------------------
@@ -243,8 +243,6 @@ CheckForPuzzleComplete
 ; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
 ClearAndDrawPuzzle
-;         jsr   Home
-;         bit   TEXTMODE
          jsr   DrawThinLines
          +LDADDR puzzle_data0
          +ST16 $FE

@@ -23,18 +23,20 @@ Start
          jsr   InitSound
          jsr   LoadProgressFromDisk
          jsr   TitlePage
-         ; C set if main menu requires full redraw (e.g. title sequence ended prematurely)
 @GoToMainMenu
-         jsr   MainMenu
+         ; C is set now if main menu requires full redraw
+         ; (e.g. title sequence ended prematurely, or we're
+         ; returning from another screen)
+         jsr   MainMenuEventLoop
          bcc   +
          jmp   Quit
-+        sta   gWorldID
-         jsr   MaybeLoadWorldFromDisk           ; A = world ID from selection page
-         bcc   @PlayNext
-         jmp   $FF59 ; TODO
-@PlayNext
++
+         ; A = world ID (from MainMenu)
+         sta   gWorldID
+         jsr   MaybeLoadWorldFromDisk
+         bcs   @GoToMainMenu
          jsr   LoadProgressFromMemory
-                                                ; A = next puzzle ID
+         ; A = next puzzle ID (from LoadProgressFromMemory)
 @Play
          sta   gPuzzleID
          ldx   gWorldID
@@ -51,21 +53,23 @@ Start
          jsr   ClearAndDrawPuzzle
          jsr   AnimatePuzzleIntoPlace
          jsr   DrawColumnSelectionIndicator
+
          jsr   PlayEventLoop
-         cmp   #kCompletedPuzzle
+         cpx   #kCompletedPuzzle
          bne   +
          jsr   AnimatePuzzleCompleted
          ldx   gPuzzleID
          jsr   MarkPuzzleCompleted
-                                                ; A - next puzzle ID
+         ; A = next puzzle ID (from MarkPuzzleCompleted)
          jmp   @Play
-+        cmp   #kRequestedRestart
++
+         cpx   #kRequestedRestart
          bne   +
          jsr   Home
          lda   gPuzzleID
          jmp   @Play
 +
-         sec
+         sec              ; full redraw
          bcs   @GoToMainMenu
 
          !source "src/ui.title.a"
