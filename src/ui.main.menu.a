@@ -19,8 +19,6 @@ kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandle
          !byte $03                   ; Ctrl-C
          !byte $53                   ; S/s
          !byte $13                   ; Ctrl-S
-         !byte $2F                   ; /
-         !byte $3F                   ; ?
          !byte $51                   ; Q/q
          !byte $11                   ; Ctrl-Q
          !byte $1B                   ; Esc
@@ -32,8 +30,6 @@ kMainMenuKeyHandlersLo
          !byte <MainMenuEventC
          !byte <MainMenuEventS
          !byte <MainMenuEventS
-         !byte <MainMenuEventQuestion
-         !byte <MainMenuEventQuestion
          !byte <MainMenuEventQ
          !byte <MainMenuEventQ
          !byte <MainMenuEventQ
@@ -44,8 +40,6 @@ kMainMenuKeyHandlersHi
          !byte >MainMenuEventC
          !byte >MainMenuEventS
          !byte >MainMenuEventS
-         !byte >MainMenuEventQuestion
-         !byte >MainMenuEventQuestion
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
@@ -91,10 +85,6 @@ MainMenuEventLoop
 @j       jsr   $FDFD                 ; SMC
          beq   MainMenuEventLoop
          rts
-
-MainMenuEventQuestion
-         jsr   HelpEventLoop
-         jmp   +
 
 MainMenuEventReturn
          jsr   SelectWorld
@@ -157,8 +147,7 @@ DrawMainMenuText
          +LDADDR mainmenu_sound_off
 +        jsr   DrawHeavySilkString
          +PRINT_AT mainmenu_about, 17, 10
-         +PRINT_AT mainmenu_help, 18, 10
-         +PRINT_AT mainmenu_quit, 19, 10
+         +PRINT_AT mainmenu_quit, 18, 10
          +PRINT_AT disclaimer, 23, 0
          rts
 
@@ -347,9 +336,6 @@ mainmenu_sound_off
 mainmenu_about
          !byte 18
          !raw  "     C.....CREDITS"
-mainmenu_help
-         !byte 15
-         !raw  "     ?.....HELP"
 mainmenu_quit
          !byte 15
          !raw  "     Q.....QUIT"
