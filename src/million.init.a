@@ -76,6 +76,8 @@ FMDEST   sta   $4000, x
          stx   MBSLOT32+2
          stx   MBSLOT33+2
          stx   MBSLOT34+2
+         stx   MBSLOT35+2
+         stx   MBSLOT36+2
 +        jmp   Start
 
 InitScrollUp
