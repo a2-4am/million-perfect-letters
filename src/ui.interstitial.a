@@ -1,0 +1,155 @@
+;license:MIT
+;(c) 2019 by qkumba
+;(c) 2020 by 4am
+;
+; animated interstitial screen
+;
+; Public functions:
+; - MaybeShowInterstitial
+;
+
+targetVTAB = $F0
+minHTAB = $F1
+maxHTAB = $F2
+randomchar = $F3
+revealchar = $F4
+revealindex = $F5
+revealtext = $FE
+
+progressStringsLo
+         !byte <kProgress10
+         !byte <kProgress20
+         !byte <kProgress30
+         !byte <kProgress40
+         !byte <kProgress50
+         !byte <kProgress60
+         !byte <kProgress70
+         !byte <kProgress80
+         !byte <kProgress90
+         !byte <kProgress100
+progressStringsHi
+         !byte >kProgress10
+         !byte >kProgress20
+         !byte >kProgress30
+         !byte >kProgress40
+         !byte >kProgress50
+         !byte >kProgress60
+         !byte >kProgress70
+         !byte >kProgress80
+         !byte >kProgress90
+         !byte >kProgress100
+
+progressHTABs
+         !byte 7
+         !byte 8
+         !byte 8
+         !byte 8
+         !byte 7
+         !byte 2
+         !byte 9
+         !byte 7
+         !byte 6
+         !byte 4
+
+kProgress10
+         !byte 25
+         !raw "10% COMPLETE! KEEP IT UP!"
+kProgress20
+         !byte 24
+         !raw "20% COMPLETE! WAY TO GO!"
+kProgress30
+         !byte 24
+         !raw "30% COMPLETE! FANTASTIC!"
+kProgress40
+         !byte 24
+         !raw "40% COMPLETE! EXCELLENT!"
+kProgress50
+         !byte 26
+         !raw "WHOA, WE'RE HALFWAY THERE!"
+kProgress60
+         !byte 36
+         !raw "60% OF THE TIME, IT WORKS EVERY TIME"
+kProgress70
+         !byte 22
+         !raw "70% COMPLETE! AMAZING!"
+kProgress80
+         !byte 25
+         !raw "80% COMPLETE! PHENOMENAL!"
+kProgress90
+         !byte 28
+         !raw "90% COMPLETE! INCONCEIVABLE!"
+kProgress100
+         !byte 31
+         !raw "100% COMPLETE! CONGRATULATIONS!"
+kEmptyString
+         !byte 1
+         !raw " "
+
+MaybeShowInterstitial
+; in:    A = next puzzle ID (in this world)
+;        X = # of puzzles completed (in this world)
+; out:   preserves A
+;        C set if all puzzles were completed
+;        C clear if there are more puzzles in this world (and A = next puzzle ID)
+;        Y, other flags clobbered
+         pha
+         cpx   #100
+         bne   +
+         ldy   #10
+         jsr   ShowInterstitialWorldComplete
+         sec
+         bcs   @exit                 ; always branches
++        ldy   #0
+-        iny
+         dex
+         dex
+         dex
+         dex
+         dex
+         dex
+         dex
+         dex
+         dex
+         dex                         ; don't judge me
+         bmi   +
+         bne   -
+         jsr   ShowInterstitialWorldProgress
++        clc
+@exit    pla
+         rts
+
+ShowInterstitialWorldProgress
+ShowInterstitialWorldComplete
+; in:    Y = which progress string to display (1..9)
+; out:   all registers and flags clobbered
+         bit   CLEARKBD
+         tya
+         tax
+         dex
+         jsr   Home
+         lda   #11
+         sta   targetVTAB
+         lda   progressHTABs, x
+         sta   minHTAB
+         lda   progressStringsHi, x
+         tay
+         lda   progressStringsLo, x
+         jsr   HeavySilkReveal
+         lda   KBD
+         bmi   @exit
+         +LDADDR InterstitialProgressMusic
+         jsr   PlaySound
+         ldx   #20
+         lda   #0
+-        jsr   WaitForKeyWithTimeout
+         bmi   +
+         dex
+         bpl   -
++        lda   KBD
+         bmi   @exit
+         lda   #0
+         sta   targetVTAB
+         sta   minHTAB
+         +LDADDR kEmptyString
+         jsr   HeavySilkReveal
+@exit    jmp   Home

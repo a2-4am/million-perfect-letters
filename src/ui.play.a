@@ -145,7 +145,7 @@ PlayEventDownArrow
          jsr   ScrollPuzzleDown
          bcc   +
 CantMove
-         jsr   SoftBell
+         jsr   ErrorSound
 KeepPlaying
          ldx   #kKeepPlaying
          rts
@@ -198,7 +198,7 @@ PlayEventLetter
          ldy   gSelectedLogicalColumn
          jsr   FindLetterInColumn
          bcc   +
-         jsr   SoftBell              ; didn't find letter, we're done
+         jsr   ErrorSound            ; didn't find letter, we're done
          ldx   #kKeepPlaying
          rts
 +        beq   PlayEventRightArrow   ; found letter but it's already on center row, we're done, exit through right arrow handler

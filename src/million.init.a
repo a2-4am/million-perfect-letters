@@ -35,8 +35,6 @@ FMDEST   sta   $4000, x
          cmp   #$40
          bcs   FM
 
-         jsr   InitVBL
-
          jsr   GetMockingboardSlot
          cpx   #0
          beq   +

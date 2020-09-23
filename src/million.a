@@ -14,7 +14,6 @@
          !source "src/macros.a"                 ; no code
          !source "src/million.init.a"           ; one-time initialization code, exits via Start
          !source "src/hw.mockingboard.a"
-         !source "src/hw.vbl.init.a"
 
 FirstMover
 !pseudopc $4000 {
@@ -28,15 +27,15 @@ Start
          ; (e.g. title sequence ended prematurely, or we're
          ; returning from another screen)
          jsr   MainMenuEventLoop
+                                     ; A = world ID
          bcc   +
          jmp   Quit
 +
-         ; A = world ID (from MainMenu)
          sta   gWorldID
          jsr   MaybeLoadWorldFromDisk
          bcs   @GoToMainMenu
          jsr   LoadProgressFromMemory
-         ; A = next puzzle ID (from LoadProgressFromMemory)
+                                     ; A = next puzzle ID
 @Play
          sta   gPuzzleID
          ldx   gWorldID
@@ -60,8 +59,11 @@ Start
          jsr   AnimatePuzzleCompleted
          ldx   gPuzzleID
          jsr   MarkPuzzleCompleted
-         ; A = next puzzle ID (from MarkPuzzleCompleted)
-         jmp   @Play
+                                     ; A = next puzzle ID
+                                     ; X = number of puzzles completed
+         jsr   MaybeShowInterstitial
+         bcc   @Play
+         bcs   @GoToMainMenu
 +
          cpx   #kRequestedRestart
          bne   +
@@ -69,12 +71,14 @@ Start
          lda   gPuzzleID
          jmp   @Play
 +
-         sec              ; full redraw
+         sec                         ; C=1 triggers full redraw
          bcs   @GoToMainMenu
 
          !source "src/ui.title.a"
          !source "src/ui.main.menu.a"
+         !source "src/ui.reveal.a"
          !source "src/ui.about.a"
+         !source "src/ui.interstitial.a"
          !source "src/ui.play.a"
          !source "src/ui.help.a"
          !source "src/ui.message.a"
@@ -84,7 +88,6 @@ Start
          !source "src/prefs.a"
          !source "src/glue.sound.a"
          !source "src/glue.mli.a"
-         !source "src/hw.vbl.a"
          !source "src/ui.font.courier.double.prime.a"
          !source "src/ui.font.courier.double.prime.data.a"
          !source "src/ui.font.heavy.silk.a"
@@ -93,10 +96,13 @@ Start
          !source "src/mockingduet.a"
 MainMenuMusic
          !bin    "res/M.SICILIENNE"
+InterstitialProgressMusic
+         !bin    "res/M.JOY01"
 M_ii     !bin    "res/M.II"
 M_V      !bin    "res/M.V"
 M_I      !bin    "res/M.I"
 M_I_LONG !bin    "res/M.I.LONG"
 M_vi6    !bin    "res/M.VI6"
+M_ERROR  !bin    "res/M.ERROR"
 }
 LastMover

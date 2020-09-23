@@ -265,7 +265,8 @@ HasPuzzleBeenCompleted
 ; MarkPuzzleCompleted
 ;
 ; in:    X = puzzle ID
-; out:   all registers and flags clobbered
+; out:   A = next puzzle ID
+;        X = number of puzzles completed in this world (0x01..0x64)
 ;------------------------------------------------------------------------------
 MarkPuzzleCompleted
          ; Completion status for the current world (100 puzzles) is stored unpacked in
@@ -360,6 +361,7 @@ MarkPuzzleCompleted
          cpy   #$0D
          bne   --
          pla                         ; A = next puzzle ID (pushed earlier)
+         pha
          sta   ($FE), y
          eor   checksum
          sta   checksum
@@ -372,6 +374,7 @@ MarkPuzzleCompleted
 +        dex
          bpl   -
          tya                         ; A = number of puzzles completed (out of 100, so also the percent complete)
+         pha
          ldy   #$0E
          sta   ($FE), y
          eor   checksum
@@ -385,8 +388,9 @@ MarkPuzzleCompleted
          !word $00C0
          lda   progressRefNum
          jsr   FlushFile
-         ldy   #$0D
-         lda   ($FE), y
+         pla
+         tax
+         pla
          rts
 
 FindPackedProgressAddr

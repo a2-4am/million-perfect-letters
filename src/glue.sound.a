@@ -6,7 +6,7 @@
 ; - ReinitSoundAfterPrefChange
 ; - LoopSound
 ; - PlaySound
-; - SoftBell
+; - ErrorSound
 ;
 
 gMockingboardSlot
@@ -48,6 +48,8 @@ k16251Progression
          !word M_V
 kFinalChord
          !word M_I_LONG
+kErrorSound
+         !word M_ERROR
 
 ReinitSoundAfterPrefChange
          ldx   gMockingboardSlot
@@ -135,22 +137,6 @@ PlayFinalChord
          tax
          rts
 
-;------------------------------------------------------------------------------
-; SoftBell
-;
-; in:    none
-; out:   all registers and flags clobbered
-;------------------------------------------------------------------------------
-SoftBell
-         lda   gSoundPref
-         beq   +
-         ldx   #32
--        lda   #2
-         jsr   ROM_WAIT
-         bit   SPEAKER
-         lda   #33
-         jsr   ROM_WAIT
-         bit   SPEAKER
-         dex
-         bne   -
-+        rts
+ErrorSound
+         +LD16 kErrorSound
+         jmp   PlaySound
