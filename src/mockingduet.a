@@ -93,6 +93,7 @@ W2        DEC TEMP
           DEX
           BNE W1
           BIT $C000
+MBKEYBRANCH
           BMI END
           JMP NEXT
 

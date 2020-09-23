@@ -344,18 +344,18 @@ disclaimer
          !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."
 
 worlddescriptions
-         !raw " 4X3, EASY       0% "
-         !raw " 5X3, BASIC      0% "
-         !raw " 6X3, SIMPLE     0% "
-         !raw " 7X3, RELAXED    0% "
-         !raw " 4X4, FAIR       0% "
-         !raw " 5X4, QUICK      0% "
-         !raw " 6X4, MEDIUM     0% "
-         !raw " 7X4, AVERAGE    0% "
-         !raw " 4X5, HARD       0% "
-         !raw " 5X5, TOUGH      0% "
-         !raw " 6X5, TRICKY     0% "
-         !raw " 7X5, COMPLEX    0% "
+         !raw " 4X3  EASY       0% "
+         !raw " 5X3  BASIC      0% "
+         !raw " 6X3  SIMPLE     0% "
+         !raw " 7X3  RELAXED    0% "
+         !raw " 4X4  FAIR       0% "
+         !raw " 5X4  QUICK      0% "
+         !raw " 6X4  MEDIUM     0% "
+         !raw " 7X4  AVERAGE    0% "
+         !raw " 4X5  HARD       0% "
+         !raw " 5X5  TOUGH      0% "
+         !raw " 6X5  TRICKY     0% "
+         !raw " 7X5  COMPLEX    0% "
 
 kWorldShortNames
          !byte 3
