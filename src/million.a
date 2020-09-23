@@ -17,8 +17,8 @@
 
 FirstMover
 !pseudopc $4000 {
-Start
-         jsr   LoadPrefs
+Start                                ; X = Mockingboard slot (from init)
+         jsr   LoadPrefs             ; preserves X
          jsr   InitSound
          jsr   LoadProgressFromDisk
          jsr   TitlePage

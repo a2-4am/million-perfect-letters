@@ -21,7 +21,7 @@ DrawHeavySilkString
          inc   $FF
 +
          +LD16 $FE
-         ; /!\ execution falls through here to DrawHeavySilk
+         ; /!\ execution falls through here to DrawHeavySilkBuffer
 
 DrawHeavySilkBuffer
 ; A/Y contains address of character buffer (characters 0x20..0x5A only)

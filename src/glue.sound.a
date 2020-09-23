@@ -7,14 +7,20 @@
 ; - LoopSound
 ; - PlaySound
 ; - PlaySoundToCompletion
+; - InitPuzzleSound
+; - PlayNextChord
+; - PlayFinalChord
 ; - ErrorSound
 ;
-
-gMockingboardSlot
-         !byte 0
+; Public variables:
+; - gSoundPref
+;
 
 gSoundPref
          !byte 1                     ; 0 = no sound, 1 = sound
+
+mockingboardSlot                     ; [byte][private]
+         !byte 0                     ; 0 = no Mockingboard, 0xC1..0xC7 = slot number
 
 progressionIndex                     ; [byte][private]
          !byte 0
@@ -52,10 +58,26 @@ kFinalChord
 kErrorSound
          !word M_ERROR
 
+;------------------------------------------------------------------------------
+; ReinitSoundAfterPrefChange
+; reinitialize self-modified code that relies on preference values
+;
+; in:    none
+; out:   all flags & registers clobbered
+;------------------------------------------------------------------------------
 ReinitSoundAfterPrefChange
-         ldx   gMockingboardSlot
+         ldx   mockingboardSlot
+         ; /!\ execution falls through to InitSound
+
+;------------------------------------------------------------------------------
+; InitSound
+; initialize self-modified code for playing music and sound
+;
+; in:    X = Mockingboard slot, or 0 if no Mockingboard present
+; out:   all flags & registers clobbered
+;------------------------------------------------------------------------------
 InitSound
-         stx   gMockingboardSlot
+         stx   mockingboardSlot
          lda   gSoundPref
          beq   @theSoundOfSilence
          cpx   #0
@@ -73,9 +95,30 @@ InitSound
 
 -
          +LD16 $FE
+         ; /!\ execution falls through to LoopSound
+
+;------------------------------------------------------------------------------
+; LoopSound
+; play sound data repeatedly until keypress
+;
+; in:    A/Y points to buffer containing sound data in Electric Duet format
+; out:   A = key pressed
+;        all other flags & registers clobbered
+;------------------------------------------------------------------------------
 LoopSound
          sec
          +HIDE_NEXT_BYTE
+         ; /!\ execution falls through to PlaySound
+
+;------------------------------------------------------------------------------
+; PlaySound
+; play sound data once, or until keypress, whichever comes first
+;
+; in:    A/Y points to buffer containing sound data in Electric Duet format
+; out:   N = 1 if exited because key was pressed, and A = key pressed
+;        N = 0 if exited because all sound data was played
+;        all other flags & registers clobbered
+;------------------------------------------------------------------------------
 PlaySound
          clc
          php
@@ -90,36 +133,57 @@ SoundLibraryDispatch=*+1
 +        lda   KBD
 Silence  rts
 
+;------------------------------------------------------------------------------
+; PlaySoundToCompletion
+; play sound data once, ignoring keypresses
+;
+; in:    A/Y points to buffer containing sound data in Electric Duet format
+; out:   all flags & registers clobbered
+;------------------------------------------------------------------------------
 PlaySoundToCompletion
          pha
          lda   ED0974+1
          sta   @restoreED
          lda   MBKEYBRANCH+1
          sta   @restoreMB
-         lda   #0
-         sta   ED0974+1
-         sta   MBKEYBRANCH+1
+         lda   #0                    ; just self-modify sound routines to branch
+         sta   ED0974+1              ; to next instruction on keypress, because
+         sta   MBKEYBRANCH+1         ; cycle counts are critical
          pla
          jsr   PlaySound
-         php
-         pha
 @restoreED=*+1
          lda   #$FD                  ; SMC
-         sta   ED0974+1
+         sta   ED0974+1              ; restore sound routines
 @restoreMB=*+1
          lda   #$FD                  ; SMC
          sta   MBKEYBRANCH+1
-         pla
-         plp
          rts
 
+;------------------------------------------------------------------------------
+; InitPuzzleSound
+; initialize chord progression at the start of a new puzzle
+;
+; in:    none
+; out:   A clobbered
+;        N = 1
+;        Z = 0
+;        all other flags & registers preserved
+;------------------------------------------------------------------------------
 InitPuzzleSound
          lda   #$FF
          sta   progressionIndex
          rts
 
+;------------------------------------------------------------------------------
+; PlayNextChord
+; play next chord progression during a puzzle
+;
+; in:    none
+; out:   A, Y clobbered
+;        X preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
 PlayNextChord
-; out:   preserves X
          txa
          pha
          lda   gWorldID
@@ -151,8 +215,16 @@ PlayNextChord
          tax
          rts
 
+;------------------------------------------------------------------------------
+; PlayFinalChord
+; play final chord progression when completing a puzzle
+;
+; in:    none
+; out:   A, Y clobbered
+;        X preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
 PlayFinalChord
-; out:   preserves X
          txa
          pha
          +LD16 kFinalChord
@@ -161,6 +233,15 @@ PlayFinalChord
          tax
          rts
 
-ErrorSound
+;------------------------------------------------------------------------------
+; PlayErrorChord
+; play error sound when attempting an illegal move
+;
+; in:    none
+; out:   A, Y clobbered
+;        X preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
+PlayErrorSound
          +LD16 kErrorSound
-         jmp   PlaySound
+         jmp   PlaySoundToCompletion

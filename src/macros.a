@@ -8,6 +8,8 @@
 ; based on routine by John Brooks
 ; posted on comp.sys.apple2 on 2018-07-11
 ; https://groups.google.com/d/msg/comp.sys.apple2/v2HOfHOmeNQ/zD76fJg_BAAJ
+; clobbers A,X
+; preserves Y
 !macro BUILD_HGR_LOOKUP_TABLES .hgrlo, .hgr1hi {
          ldx   #0
 -        txa
@@ -19,14 +21,14 @@
          ora   #5
 +        asl
          asl
-         sta   .hgrlo,x
+         sta   .hgrlo, x
          txa
          and   #7
          rol
-         asl   .hgrlo,x
+         asl   .hgrlo, x
          rol
          ora   #$20
-         sta   .hgr1hi,x
+         sta   .hgr1hi, x
          inx
          cpx   #$C0
          bne   -
@@ -35,7 +37,8 @@
 ; for functions that take parameters on the stack
 ; set (PARAM) to point to the parameters and
 ; move the stack pointer to the first byte after the parameters
-; clobbers A,X,Y
+; clobbers A,Y
+; preserves X
 !macro   PARAMS_ON_STACK .bytes {
          pla
          sta   PARAM
@@ -54,6 +57,8 @@
 ; load a 16-bit value from the parameters on the stack
 ; then store it as new source
 ; (assumes PARAMS_ON_STACK was used first)
+; clobbers A,Y
+; preserves X
 !macro   LDPARAM16 .offset,.dest {
          ldy   #.offset
          lda   (PARAM),y
@@ -67,6 +72,8 @@
 ; load an 8-bit value from the parameters on the stack
 ; then store it as new source
 ; (assumes PARAMS_ON_STACK was used first)
+; clobbers A,Y
+; preserves X
 !macro   LDPARAM8 .offset,.dest {
          ldy   #.offset
          lda   (PARAM),y
@@ -74,24 +81,28 @@
 }
 
 ; load the address of .ptr into A (low) and Y (high)
+; preserves X
 !macro   LDADDR .ptr {
          lda   #<.ptr
          ldy   #>.ptr
 }
 
 ; load a 16-bit value into A (low) and Y (high)
+; preserves X
 !macro   LD16 .ptr {
          lda   .ptr
          ldy   .ptr+1
 }
 
 ; store a 16-bit value from A (low) and Y (high)
+; preserves X
 !macro   ST16 .ptr {
          sta   .ptr
          sty   .ptr+1
 }
 
 ; decrement a 16-bit value in A (low) and Y (high)
+; preserves X
 !macro   DEC16 {
          sec
          sbc   #1
@@ -101,6 +112,7 @@
 }
 
 ; increment a 16-bit value in A (low) and Y (high)
+; preserves X
 !macro   INC16 {
          clc
          adc   #1
@@ -110,6 +122,7 @@
 }
 
 ; increment a 16-bit value stored at an address
+; preserves A,X,Y
 !macro   INCADDR .addr {
          inc   .addr
          bne   +
@@ -118,6 +131,7 @@
 }
 
 ; compare a 16-bit value in A (low) and Y (high) to an absolute address
+; preserves A,X,Y
 !macro   CMP16ADDR .addr {
          cmp   .addr
          bne   +
@@ -126,6 +140,7 @@
 }
 
 ; compare a 16-bit value in A (low) and Y (high) to an immediate value
+; preserves A,X,Y
 !macro   CMP16 .val {
          cmp   #<.val
          bne   +
@@ -133,38 +148,48 @@
 +
 }
 
+; long-BPL
+; preserves A,X,Y
 !macro   LBPL .target {
          bmi   +
          jmp   .target
 +
 }
 
+; long-BNE
+; preserves A,X,Y
 !macro   LBNE .target {
          beq   +
          jmp   .target
 +
 }
 
+; long-BCS
+; preserves A,X,Y
 !macro   LBCS .target {
          bcc   +
          jmp   .target
 +
 }
 
+; preserves A,X,Y
 !macro   READ_ROM_NO_WRITE {
          bit   $C082
 }
 
 ; use BIT to swallow the following 1-byte opcode
+; preserves A,X,Y
 !macro   HIDE_NEXT_BYTE {
          !byte $24
 }
 
 ; use BIT to swallow the following 2-byte opcode
+; preserves A,X,Y
 !macro   HIDE_NEXT_2_BYTES {
          !byte $2C
 }
 
+; preserves A,X,Y
 !macro   RTS_IF_KEY {
          bit   $c000
          bpl   +
@@ -172,6 +197,7 @@
 +
 }
 
+; clobbers all registers & flags
 !macro   PRINT_AT .str, .vtab, .htab {
          lda   #.vtab
          sta   VTAB
@@ -181,7 +207,8 @@
          jsr   DrawHeavySilkString
 }
 
-; debugging
+; wait for keypress (for debugging)
+; preserves A,X,Y
 !macro   DEBUGWAIT {
          bit   $c010
 -        bit   $c000

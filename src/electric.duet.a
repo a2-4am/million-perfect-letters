@@ -129,8 +129,18 @@
 ;$09BF> EA:      NOP             ; 2
 ;$09C0> 50 A3:   BVC $0965       ; 4 *!*
 ;
-!zone {
-!align $FF,0,0           ; align to page
+
+;------------------------------------------------------------------------------
+; ElectricDuet
+; play 2-voice music in Electric Duet format
+;
+; in:    $1E/$1F points to music data
+; out:   all flags and registers clobbered
+;        will exit when it finishes playing (music data is 0-0-0 terminated)
+;        will also exit on keypress, but you must check $C000 yourself to see
+;          if that happened
+;------------------------------------------------------------------------------
+!align $FF,0,0           ; align to page (essential)
 ElectricDuet
 ED0900   LDA #$01        ; 2 *!*
 ED0902   STA $09         ; 3
@@ -239,4 +249,3 @@ ED09BB   EOR #$80        ; 2 *!*
 ED09BD   BVS ED0962      ; 4 *!*
 ED09BF   NOP             ; 2
 ED09C0   BVC ED0965      ; 4 *!*
-}

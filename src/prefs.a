@@ -24,6 +24,9 @@ DEFAULTCHEAT = $30                   ; ASCII '0'
 ;------------------------------------------------------------------------------
 ; LoadPrefs
 ; load settings from disk
+;
+; in:    none
+; out:   X preserved
 ;------------------------------------------------------------------------------
 LoadPrefs
          jsr   LoadFile1Shot
