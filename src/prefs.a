@@ -26,7 +26,9 @@ DEFAULTCHEAT = $30                   ; ASCII '0'
 ; load settings from disk
 ;
 ; in:    none
-; out:   X preserved
+; out:   A,Y clobbered
+;        X preserved
+;        flags clobbered
 ;------------------------------------------------------------------------------
 LoadPrefs
          jsr   LoadFile1Shot
@@ -57,6 +59,11 @@ LoadPrefs
 ;------------------------------------------------------------------------------
 ; SavePrefs
 ; save settings to disk
+;
+; in:    none
+; out:   A,Y clobbered
+;        X preserved
+;        flags clobbered
 ;------------------------------------------------------------------------------
 SavePrefs
          lda   #CURRENTVER

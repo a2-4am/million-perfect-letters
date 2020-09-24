@@ -10,6 +10,7 @@
 ; - CheckForTargetWord
 ; - FindLetterInColumn
 ; - ScrollPuzzleDown
+; - ScrollPuzzleDownUnconditionally
 ; - ScrollPuzzleUp
 ; - IsPuzzleComplete
 
@@ -38,8 +39,17 @@ puzzle_words          = $0353        ; [0x80 bytes]
                                      ; each 8-byte record is a <puzzle_logical_width>-length word, no prefix
                                      ; extra bytes in each record are ignored
 
-InitPuzzleStorage
+;------------------------------------------------------------------------------
+; InitPuzzleStorage
+; initialize internal data structures before playing a new puzzle
+;
 ; in:    A = logical puzzle width (number of letters in each word, 4..7)
+; out:   A = 0
+;        X = 0
+;        Y preserved
+;        flags clobbered
+;------------------------------------------------------------------------------
+InitPuzzleStorage
          sta   puzzle_logical_width
          ldx   #$CF
          lda   #0
@@ -48,9 +58,15 @@ InitPuzzleStorage
          bne   -
          rts
 
+;------------------------------------------------------------------------------
+; AddLineToPuzzle
+; add one puzzle line while constructing a puzzle
+;
+; in:    ($FE) points to <puzzle_logical_width>-length character buffer
+;          (no prefix, no suffix)
+; out:   all registers & flags clobbered
+;------------------------------------------------------------------------------
 AddLineToPuzzle
-; in:    ($FE) points to <puzzle_logical_width> length character buffer (no prefix, no suffix)
-; out:   clobbers all
          lda   puzzle_logical_height
          asl
          asl
@@ -69,9 +85,15 @@ AddLineToPuzzle
          inc   puzzle_logical_height
          rts
 
+;------------------------------------------------------------------------------
+; AddTargetWordToPuzzle
+; add one target word while constructing a puzzle
+;
+; in:    ($FE) points to <puzzle_logical_width> length character buffer
+;          (no prefix, no suffix)
+; out:   all registers & flags clobbered
+;------------------------------------------------------------------------------
 AddTargetWordToPuzzle
-; in:    ($FE) points to <puzzle_logical_width> length character buffer (no prefix, no suffix)
-; out:   clobbers all
          lda   puzzle_word_count
          asl
          asl
@@ -88,13 +110,19 @@ AddTargetWordToPuzzle
          rts
 
 unused_counter=$FD
-CheckForTargetWord
+;------------------------------------------------------------------------------
+; CheckForTargetWord
+; check if there is a target word in row 4 (between the lines)
+;
 ; in:    none
-; out:   C clear if a target word was found on row 4
-;        C set if no target word found
-;        note: will return C=set if target word was found but all letters were
+; out:   C = 0 if a target word was found on row 4
+;        C = 1 if no target word found
+;        note: will still return C=1 if target word was found but all letters were
 ;          already used (i.e. word had already been found before but player
 ;          shifted letters out and back)
+;        all other registers & flags clobbered
+;------------------------------------------------------------------------------
+CheckForTargetWord
          +LDADDR puzzle_words
          +ST16 $FE
          ldx   #0                    ; word index
@@ -138,7 +166,11 @@ CheckForTargetWord
          rts
 
 lettertofind = $FD
-FindLetterInColumn
+;------------------------------------------------------------------------------
+; FindLetterInColumn
+; check whether a given column contains a given letter
+; (used to support scroll-column-by-typing)
+;
 ; in:    A = letter (0x41..0x5A)
 ;        Y = logical column to search
 ; out:   C clear if letter was found in given column, and
@@ -149,6 +181,8 @@ FindLetterInColumn
 ;        clobbers A/X
 ;        preserves Y
 ;        clobbers $FD,$FE,$FF
+;------------------------------------------------------------------------------
+FindLetterInColumn
          ldx   #$01
 -        cmp   puzzle_data0, y
          beq   @down
@@ -183,13 +217,30 @@ FindLetterInColumn
          lda   #$00
          rts
 
-ScrollPuzzleDown
+;------------------------------------------------------------------------------
+; ScrollPuzzleDown
+; rearrange internal data structures to 'scroll' a column downwards if possible
+; (does not update screen)
+;
 ; in:    Y = logical column to scroll
 ; out:   C clear if puzzle was scrolled down
 ;        C set if puzzle was already as far down as it can go
 ;        preserves X/Y
+;------------------------------------------------------------------------------
+ScrollPuzzleDown
          lda   puzzle_data3, y
          beq   +
+         ; /!\ execution falls through to ScrollPuzzleDownUnconditionally
+
+;------------------------------------------------------------------------------
+; ScrollPuzzleDownUnconditionally
+; rearrange internal data structures to 'scroll' a column downwards
+; (does not update screen)
+;
+; in:    Y = logical column to scroll
+; out:   C = 0
+;        preserves X/Y
+;------------------------------------------------------------------------------
 ScrollPuzzleDownUnconditionally
          lda   puzzle_data7, y
          sta   puzzle_data8, y
@@ -227,11 +278,17 @@ ScrollPuzzleDownUnconditionally
 +        sec
          rts
 
-ScrollPuzzleUp
+;------------------------------------------------------------------------------
+; ScrollPuzzleUp
+; rearrange internal data structures to 'scroll' a column upwards if possible
+; (does not update screen)
+;
 ; in:    Y = logical column to scroll
 ; out:   C clear if puzzle was scrolled up
 ;        C set if puzzle was already as far up as it can go
 ;        preserves X/Y
+;------------------------------------------------------------------------------
+ScrollPuzzleUp
          lda   puzzle_data5, y
          beq   +
 
@@ -271,9 +328,17 @@ ScrollPuzzleUp
 +        sec
          rts
 
+;------------------------------------------------------------------------------
+; IsPuzzleComplete
+; check if all letters in puzzle have been used
+;
+; in:    none
+; out:   C = 0 if puzzle is complete (all letters have been matched)
+;        C = 1 if puzzle is not yet complete
+;        A,X clobbered
+;        Y preserved
+;------------------------------------------------------------------------------
 IsPuzzleComplete
-; out:   C clear if puzzle is complete (all letters have been matched)
-;        C set if puzzle is not yet complete
          ldx   #$47
 -        lda   puzzle_data0, x
          beq   @keepChecking
