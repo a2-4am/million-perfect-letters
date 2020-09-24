@@ -22,8 +22,6 @@
 ; - fixes for stereo output
 ; - labels for slot independence (see million.init.a)
 
-!zone {
-
 CHN       = $1D
 SONG      = $1E
 LEFTCHN   = $00
@@ -156,7 +154,7 @@ MBSLOT28  STA $C481
 MBSLOT29  STA $C401
 MBSLOT30  STA $C481
           JSR SETREG1
-          LDA #$0F
+          LDA #$0D
 MBSLOT31  STA $C401
 MBSLOT32  STA $C481
           JSR WRDATA1
@@ -164,7 +162,7 @@ MBSLOT32  STA $C481
 MBSLOT33  STA $C401
 MBSLOT34  STA $C481
           JSR SETREG1
-          LDA #$0F
+          LDA #$0D
 MBSLOT35  STA $C401
 MBSLOT36  STA $C481
           JSR WRDATA1
@@ -173,4 +171,3 @@ MBSLOT36  STA $C481
 OCTAVE    !byte 1
 TEMPO     !byte 8
 TEMP      !byte 0
-}
