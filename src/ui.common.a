@@ -20,12 +20,17 @@
 GlobalLeftMargin
          !byte $0A
 
-Home
+;------------------------------------------------------------------------------
+; Home
+; clear graphics page 1 without flicker
+;
 ; in:    none, but assumes text screen 1 is clear (this is done at program startup)
 ; out:   hi-res page 1 cleared and displayed
 ;        X preserved
 ;        A/Y clobbered
 ;        flags clobbered
+;------------------------------------------------------------------------------
+Home
          bit   PAGE1
          bit   FULLGFX
          bit   HIRES
@@ -69,10 +74,15 @@ Home
          bit   GFXMODE
          rts
 
-WaitForKeyWithTimeout
+;------------------------------------------------------------------------------
+; WaitForKeyWithTimeout
+; just what it says on the tin
+;
 ; in:    A = timeout length (like standard $FCA8 wait routine)
-; out:   A clobbered
+; out:   A = 0
 ;        X/Y preserved
+;------------------------------------------------------------------------------
+WaitForKeyWithTimeout
          sec
 @wait1   pha
 @wait2   sbc   #1
@@ -84,12 +94,26 @@ WaitForKeyWithTimeout
          bne   @wait1
 @exit    rts
 
+;------------------------------------------------------------------------------
+; ScrollDown
+; scroll a single puzzle column down 16 HGR rows
+;
+; in:    Y = logical column to scroll
+; out:   X/Y preserved
+;------------------------------------------------------------------------------
 ScrollDown
          lda   #$16
-ScrollDownBy
+         ; /!\ execution falls through to ScrollDownBy
+
+;------------------------------------------------------------------------------
+; ScrollDownBy
+; scroll a single puzzle column down a specified number of HGR rows
+;
 ; in:    Y = logical column to scroll
 ;        A = number of HGR rows to scroll
 ; out:   X/Y preserved
+;------------------------------------------------------------------------------
+ScrollDownBy
          stx   @x+1
          sty   @y+1
          tax
@@ -100,12 +124,26 @@ ScrollDownBy
 @y       ldy   #$FD                  ; SMC
          rts
 
+;------------------------------------------------------------------------------
+; ScrollUp
+; scroll a single puzzle column up 16 HGR rows
+;
+; in:    Y = logical column to scroll
+; out:   X/Y preserved
+;------------------------------------------------------------------------------
 ScrollUp
          lda   #$16
-ScrollUpBy
+         ; /!\ execution falls through to ScrollUpBy
+
+;------------------------------------------------------------------------------
+; ScrollUpBy
+; scroll a single puzzle column up a specified number of HGR rows
+;
 ; in:    Y = logical column to scroll
 ;        A = number of HGR rows to scroll
 ; out:   X/Y preserved
+;------------------------------------------------------------------------------
+ScrollUpBy
          stx   @x+1
          sty   @y+1
          tax
@@ -116,20 +154,15 @@ ScrollUpBy
 @y       ldy   #$FD                  ; SMC
          rts
 
-InitScrollStorage
-; out:   preserves X/Y
-         lda   #$00
-         sta   $FC
-         sta   $FD
-         sta   $FE
-         sta   $FF
-         rts
-
-LogicalColumnToPhysicalColumn
+;------------------------------------------------------------------------------
+; LogicalColumnToPhysicalColumn
+;
 ; in:    Y contains logical column number
 ; out:   Y contains physical byte offset to use against an HGR base address
 ;        A clobbered
 ;        X preserved
+;------------------------------------------------------------------------------
+LogicalColumnToPhysicalColumn
          lda   GlobalLeftMargin
          clc
          bcc   +
@@ -141,14 +174,19 @@ LogicalColumnToPhysicalColumn
 
 nonZeroDigits = $EE
 paddingCharacter = $EF
-ToASCIIString
-; convert byte value to length-prefixed 3-digit decimal number as ASCII string with given padding character
+;------------------------------------------------------------------------------
+; ToASCIIString
+; convert byte value to length-prefixed 3-digit decimal number as ASCII string
+; with given padding character
+;
 ; in:    X = any number (0..255 obviously)
 ;        A = padding character (e.g. '0' or ' ')
 ; out:   $F1 = 0x03
 ;        $F2..$F4 = ASCII digits of decimal representation
 ;        clobbers $EE,$EF,$F0
 ;        all flags & registers clobbered
+;------------------------------------------------------------------------------
+ToASCIIString
          sta   paddingCharacter
          stx   $F0
          ldx   #0
@@ -191,3 +229,13 @@ ToASCIIString
          !byte 100
          !byte 10
          !byte 1
+
+InitScrollStorage
+; [private]
+; out:   preserves X/Y
+         lda   #$00
+         sta   $FC
+         sta   $FD
+         sta   $FE
+         sta   $FF
+         rts

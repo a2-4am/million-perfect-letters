@@ -55,6 +55,14 @@ help_esc
          !byte 40
          !raw  "ESC............................MAIN MENU"
 
+;------------------------------------------------------------------------------
+; HelpEventLoop
+; display help subpage
+;
+; in:    none
+; out:   C = 1
+;        all other flags & registers clobbered
+;------------------------------------------------------------------------------
 HelpEventLoop
          jsr   Home
          jsr   DrawHelpText
@@ -66,6 +74,7 @@ HelpEventLoop
          rts
 
 DrawHelpText
+; [private]
          bit   TEXTMODE
          +PRINT_AT help_info1, 3, 7
          +PRINT_AT help_info2, 5, 7

@@ -3,15 +3,25 @@
 ;
 ; font drawing routines for Heavy Silk pixel font
 ;
+; Public functions:
+; - DrawHeavySilkString
+; - DrawHeavySilkBuffer
+; - DrawHeavySilkBufferInverse
+;
 
+;------------------------------------------------------------------------------
+; DrawLargeCharacter
+;
+; in:    A/Y contains address of length-prefixed string (length 1..40,
+;          characters 0x20..0x5A only)
+;        $24 (HTAB) contains starting column (0..39)
+;        $25 (VTAB) contains textpage line (0..23)
+;        all characters are drawn on the same line
+;        HTAB is incremented for each character
+; out:   clobbers A/X/Y
+;        clobbers $FE/$FF
+;------------------------------------------------------------------------------
 DrawHeavySilkString
-; A/Y contains address of length-prefixed string (length 1..40, characters 0x20..0x5A only)
-; $24 (HTAB) contains starting column (0..39)
-; $25 (VTAB) contains textpage line (0..23)
-; all characters are drawn on the same line
-; HTAB is incremented for each character
-; clobbers A/X/Y
-; clobbers $FE/$FF
          +ST16 $FE
          ldy   #0
          lda   ($FE),y
@@ -23,15 +33,19 @@ DrawHeavySilkString
          +LD16 $FE
          ; /!\ execution falls through here to DrawHeavySilkBuffer
 
+;------------------------------------------------------------------------------
+; DrawHeavySilkBuffer
+;
+; in:    A/Y contains address of character buffer (characters 0x20..0x5A only)
+;        X contains buffer length (1..40)
+;        $24 (HTAB) contains starting column (0..39)
+;        $25 (VTAB) contains textpage line (0..23)
+;        all characters are drawn on the same line
+;        HTAB is incremented for each character
+;        VTAB is NOT incremented
+; out:   clobbers A/X/Y
+;------------------------------------------------------------------------------
 DrawHeavySilkBuffer
-; A/Y contains address of character buffer (characters 0x20..0x5A only)
-; X contains buffer length (1..40)
-; $24 (HTAB) contains starting column (0..39)
-; $25 (VTAB) contains textpage line (0..23)
-; all characters are drawn on the same line
-; HTAB is incremented for each character
-; VTAB is NOT incremented
-; clobbers A/X/Y
          +ST16 @loop+1
          dex
          lda   VTAB
@@ -91,15 +105,19 @@ DrawHeavySilkBuffer
          bpl   @loop
          rts
 
+;------------------------------------------------------------------------------
+; DrawHeavySilkBufferInverse
+;
+; in:    A/Y contains address of character buffer (characters 0x20..0x5A only)
+;        X contains buffer length (1..40)
+;        $24 (HTAB) contains starting column (0..39)
+;        $25 (VTAB) contains textpage line (0..23)
+;        all characters are drawn on the same line
+;        HTAB is incremented for each character
+;        VTAB is NOT incremented
+; out:   clobbers A/X/Y
+;------------------------------------------------------------------------------
 DrawHeavySilkBufferInverse
-; A/Y contains address of character buffer (characters 0x20..0x5A only)
-; X contains buffer length (1..40)
-; $24 (HTAB) contains starting column (0..39)
-; $25 (VTAB) contains textpage line (0..23)
-; all characters are drawn on the same line
-; HTAB is incremented for each character
-; VTAB is NOT incremented
-; clobbers A/X/Y
          +ST16 @loop+1
          dex
          lda   VTAB

@@ -85,13 +85,18 @@ kEmptyString
          !byte 1
          !raw " "
 
-MaybeShowInterstitial
+;------------------------------------------------------------------------------
+; MaybeShowInterstitial
+; display interstitial progress animation after every 10 completed puzzles
+;
 ; in:    A = next puzzle ID (in this world)
 ;        X = # of puzzles completed (in this world)
 ; out:   preserves A
 ;        C set if all puzzles were completed
 ;        C clear if there are more puzzles in this world (and A = next puzzle ID)
 ;        Y, other flags clobbered
+;------------------------------------------------------------------------------
+MaybeShowInterstitial
          pha
          cpx   #100
          bne   +
@@ -120,6 +125,7 @@ MaybeShowInterstitial
 
 ShowInterstitialWorldProgress
 ShowInterstitialWorldComplete
+; [private]
 ; in:    Y = which progress string to display (1..9)
 ; out:   all registers and flags clobbered
          bit   CLEARKBD

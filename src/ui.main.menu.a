@@ -1,10 +1,10 @@
 ;license:MIT
 ;(c) 2020 by 4am
 ;
-; main menu
+; main menu & select world screen
 ;
 ; Public functions:
-; - MainMenu
+; - MainMenuEventLoop
 ;
 
 ; Codes returned by event handlers
@@ -44,7 +44,10 @@ kMainMenuKeyHandlersHi
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
 
-MainMenuEventLoop
+;------------------------------------------------------------------------------
+; MainMenuEventLoop
+; display main menu
+;
 ; in:    C clear if screen is already cleared and title is already drawn
 ;          (will happen if animated title screen runs to completion)
 ;        C set if full screen clear & redraw is required
@@ -53,6 +56,8 @@ MainMenuEventLoop
 ; out:   C clear if user selected a world to play, and
 ;          A = world ID
 ;        C set if user selected quit
+;------------------------------------------------------------------------------
+MainMenuEventLoop
          bcc   +
          jsr   DrawMainMenuTitle
 +        jsr   DrawMainMenuText
@@ -155,6 +160,7 @@ counter = $F2
 selectedworld = $F3
 
 SelectWorld
+; [private]
 ; in:    none
 ; out:   C clear if world was selected, and
 ;          A = 0-based world ID

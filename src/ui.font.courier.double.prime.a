@@ -3,6 +3,9 @@
 ;
 ; font drawing routines
 ;
+; Public functions:
+; - DrawLargeCharacter
+;
 
 !macro COMPUTE_DRAW_ADDRESSES {
          ldx   charrow
@@ -22,17 +25,21 @@
          +COMPUTE_DRAW_ADDRESSES
 }
 
+;------------------------------------------------------------------------------
+; DrawLargeCharacter
+;
+; in:    A contains character (0x41..0x5A) or 0x00
+;        X contains logical line number (0x00..0x08)
+;        Y contains logical column number (0x00..0x0C)
+;        HGR row is (0x16 * X)
+;          which needs to total no more than 0xB0
+;        character will be drawn on HGR row, byte offset (GlobalLeftMargin + (3 * Y))
+;          which needs to total no more than 0x26
+; out:   preserves X/Y
+;        clobbers A/all flags
+;        clobbers $ED..$F7
+;------------------------------------------------------------------------------
 DrawLargeCharacter
-; A contains character (0x41..0x5A) or 0x00
-; X contains logical line number (0x00..0x08)
-; Y contains logical column number (0x00..0x0C)
-; HGR row is (0x16 * X)
-;   which needs to total no more than 0xB0
-; character will be drawn on HGR row, byte offset (GlobalLeftMargin + (3 * Y))
-;   which needs to total no more than 0x26
-; preserves X/Y
-; clobbers A/all flags
-; clobbers $ED..$F7
          sta   original_char
          beq   +
          and   #$7F

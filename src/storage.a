@@ -8,7 +8,6 @@
 ; - LoadProgressFromDisk
 ; - LoadProgressFromMemory
 ; - LoadPuzzleFromMemory
-; - HasPuzzleBeenCompleted
 ; - MarkPuzzleCompleted
 ; - FindPackedProgressAddr
 ;
@@ -242,24 +241,6 @@ LoadPuzzleFromMemory
 @messageBuffer
          !byte 40
          !raw  "                                        "
-
-;------------------------------------------------------------------------------
-; HasPuzzleBeenCompleted
-;
-; in:    X = puzzle ID
-; out:   C clear if puzzle had previously been marked as completed
-;        C set if puzzle has never been marked as completed
-;        X/Y preserved
-;        A clobbered
-;        other flags clobbered
-;------------------------------------------------------------------------------
-HasPuzzleBeenCompleted
-         lda   PROGRESS, x
-         beq   +
-         clc
-         rts
-+        sec
-         rts
 
 ;------------------------------------------------------------------------------
 ; MarkPuzzleCompleted

@@ -59,9 +59,14 @@ kAboutMockingDuet
          !byte 35
          !raw "MOCKINGBOARD ROUTINES BY CYBERNESTO"
 
-AboutPage
+;------------------------------------------------------------------------------
+; AboutPage
+; display animated credits page
+;
 ; in:    none
-; out:   everything clobbered
+; out:   all registers & flags clobbered
+;------------------------------------------------------------------------------
+AboutPage
          jsr   Home
 @outerloop
          lda   #0
