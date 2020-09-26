@@ -7,58 +7,6 @@
 ; - AboutPage
 ;
 
-revealindex = $F5
-
-revealStringsLo
-         !byte <kAboutWritten
-         !byte <kAboutTested
-         !byte <kAboutTested2
-         !byte <kAboutMusic
-         !byte <kAboutElectricDuet
-         !byte <kAboutMockingDuet
-         !byte 0
-revealStringsHi
-         !byte >kAboutWritten
-         !byte >kAboutTested
-         !byte >kAboutTested2
-         !byte >kAboutMusic
-         !byte >kAboutElectricDuet
-         !byte >kAboutMockingDuet
-         !byte 0
-
-revealVTABs
-         !byte 4
-         !byte 20
-         !byte 21
-         !byte 9
-         !byte 14
-         !byte 19
-revealHTABs
-         !byte 5
-         !byte 16
-         !byte 20
-         !byte 17
-         !byte 9
-         !byte 1
-kAboutWritten
-         !byte 14
-         !raw "WRITTEN BY 4AM"
-kAboutTested
-         !byte 21
-         !raw "PLAYTESTED BY OPTION8"
-kAboutTested2
-         !byte 10
-         !raw "AND BESLEY"
-kAboutMusic
-         !byte 22
-         !raw "MUSIC BY GABRIEL FAURE"
-kAboutElectricDuet
-         !byte 28
-         !raw "SOUND ROUTINES BY PAUL LUTUS"
-kAboutMockingDuet
-         !byte 35
-         !raw "MOCKINGBOARD ROUTINES BY CYBERNESTO"
-
 ;------------------------------------------------------------------------------
 ; AboutPage
 ; display animated credits page
@@ -70,23 +18,69 @@ AboutPage
          jsr   Home
 @outerloop
          lda   #0
-         sta   revealindex
-@loop    ldx   revealindex
-         lda   revealVTABs, x
+         sta   @loop+1
+@loop    ldx   #$FD                  ; SMC
+         lda   aboutVTABs, x
          sta   targetVTAB
-         lda   revealHTABs, x
+         lda   aboutHTABs, x
          sta   minHTAB
-         lda   revealStringsHi, x
+         lda   aboutStringsHi, x
          beq   @outerloop
          tay
-         lda   revealStringsLo, x
+         lda   aboutStringsLo, x
          jsr   HeavySilkReveal
-         ldx   #10
-         lda   #0
--        jsr   WaitForKeyWithTimeout
-         bmi   @exit
-         dex
-         bpl   -
-         inc   revealindex
-         bne   @loop
+         inc   @loop+1
+         ldx   #11
+         jsr   LongWaitForKeyWithTimeout
+         bpl   @loop
 @exit    rts
+
+aboutStringsLo
+         !byte <sAboutWritten
+         !byte <sAboutTested
+         !byte <sAboutTested2
+         !byte <sAboutMusic
+         !byte <sAboutElectricDuet
+         !byte <sAboutMockingDuet
+         !byte 0
+aboutStringsHi
+         !byte >sAboutWritten
+         !byte >sAboutTested
+         !byte >sAboutTested2
+         !byte >sAboutMusic
+         !byte >sAboutElectricDuet
+         !byte >sAboutMockingDuet
+         !byte 0
+
+aboutVTABs
+         !byte 4
+         !byte 20
+         !byte 21
+         !byte 9
+         !byte 14
+         !byte 19
+aboutHTABs
+         !byte 5
+         !byte 16
+         !byte 20
+         !byte 17
+         !byte 9
+         !byte 1
+sAboutWritten
+         !byte 14
+         !raw "WRITTEN BY 4AM"
+sAboutTested
+         !byte 21
+         !raw "PLAYTESTED BY OPTION8"
+sAboutTested2
+         !byte 10
+         !raw "AND BESLEY"
+sAboutMusic
+         !byte 22
+         !raw "MUSIC BY GABRIEL FAURE"
+sAboutElectricDuet
+         !byte 28
+         !raw "SOUND ROUTINES BY PAUL LUTUS"
+sAboutMockingDuet
+         !byte 35
+         !raw "MOCKINGBOARD ROUTINES BY CYBERNESTO"

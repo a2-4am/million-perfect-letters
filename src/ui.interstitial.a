@@ -8,83 +8,6 @@
 ; - MaybeShowInterstitial
 ;
 
-targetVTAB = $F0
-minHTAB = $F1
-maxHTAB = $F2
-randomchar = $F3
-revealchar = $F4
-revealindex = $F5
-revealtext = $FE
-
-progressStringsLo
-         !byte <kProgress10
-         !byte <kProgress20
-         !byte <kProgress30
-         !byte <kProgress40
-         !byte <kProgress50
-         !byte <kProgress60
-         !byte <kProgress70
-         !byte <kProgress80
-         !byte <kProgress90
-         !byte <kProgress100
-progressStringsHi
-         !byte >kProgress10
-         !byte >kProgress20
-         !byte >kProgress30
-         !byte >kProgress40
-         !byte >kProgress50
-         !byte >kProgress60
-         !byte >kProgress70
-         !byte >kProgress80
-         !byte >kProgress90
-         !byte >kProgress100
-
-progressHTABs
-         !byte 7
-         !byte 8
-         !byte 8
-         !byte 8
-         !byte 7
-         !byte 2
-         !byte 9
-         !byte 7
-         !byte 6
-         !byte 4
-
-kProgress10
-         !byte 25
-         !raw "10% COMPLETE! KEEP IT UP!"
-kProgress20
-         !byte 24
-         !raw "20% COMPLETE! WAY TO GO!"
-kProgress30
-         !byte 24
-         !raw "30% COMPLETE! FANTASTIC!"
-kProgress40
-         !byte 24
-         !raw "40% COMPLETE! EXCELLENT!"
-kProgress50
-         !byte 26
-         !raw "WHOA, WE'RE HALFWAY THERE!"
-kProgress60
-         !byte 36
-         !raw "60% OF THE TIME, IT WORKS EVERY TIME"
-kProgress70
-         !byte 22
-         !raw "70% COMPLETE! AMAZING!"
-kProgress80
-         !byte 25
-         !raw "80% COMPLETE! PHENOMENAL!"
-kProgress90
-         !byte 28
-         !raw "90% COMPLETE! INCONCEIVABLE!"
-kProgress100
-         !byte 31
-         !raw "100% COMPLETE! CONGRATULATIONS!"
-kEmptyString
-         !byte 1
-         !raw " "
-
 ;------------------------------------------------------------------------------
 ; MaybeShowInterstitial
 ; display interstitial progress animation after every 10 completed puzzles
@@ -142,20 +65,87 @@ ShowInterstitialWorldComplete
          lda   progressStringsLo, x
          jsr   HeavySilkReveal
          lda   KBD
-         bmi   @exit
+         bmi   +
+         ; wildcard, will allow any key to terminate sound
+         +LDADDR sOneSpace
+         +ST16 $EE
          +LDADDR InterstitialProgressMusic
          jsr   PlaySound
-         ldx   #20
-         lda   #0
--        jsr   WaitForKeyWithTimeout
+         ldx   #21
+         jsr   LongWaitForKeyWithTimeout
          bmi   +
-         dex
-         bpl   -
-+        lda   KBD
-         bmi   @exit
          lda   #0
          sta   targetVTAB
          sta   minHTAB
-         +LDADDR kEmptyString
+         +LDADDR sOneSpace
          jsr   HeavySilkReveal
-@exit    jmp   Home
++        jmp   Home
+
+progressStringsLo
+         !byte <sProgress10
+         !byte <sProgress20
+         !byte <sProgress30
+         !byte <sProgress40
+         !byte <sProgress50
+         !byte <sProgress60
+         !byte <sProgress70
+         !byte <sProgress80
+         !byte <sProgress90
+         !byte <sProgress100
+progressStringsHi
+         !byte >sProgress10
+         !byte >sProgress20
+         !byte >sProgress30
+         !byte >sProgress40
+         !byte >sProgress50
+         !byte >sProgress60
+         !byte >sProgress70
+         !byte >sProgress80
+         !byte >sProgress90
+         !byte >sProgress100
+
+progressHTABs
+         !byte 7
+         !byte 8
+         !byte 8
+         !byte 8
+         !byte 7
+         !byte 2
+         !byte 9
+         !byte 7
+         !byte 6
+         !byte 4
+
+sProgress10
+         !byte 25
+         !raw "10% COMPLETE! KEEP IT UP!"
+sProgress20
+         !byte 24
+         !raw "20% COMPLETE! WAY TO GO!"
+sProgress30
+         !byte 24
+         !raw "30% COMPLETE! FANTASTIC!"
+sProgress40
+         !byte 24
+         !raw "40% COMPLETE! EXCELLENT!"
+sProgress50
+         !byte 26
+         !raw "WHOA, WE'RE HALFWAY THERE!"
+sProgress60
+         !byte 36
+         !raw "60% OF THE TIME, IT WORKS EVERY TIME"
+sProgress70
+         !byte 22
+         !raw "70% COMPLETE! AMAZING!"
+sProgress80
+         !byte 25
+         !raw "80% COMPLETE! PHENOMENAL!"
+sProgress90
+         !byte 28
+         !raw "90% COMPLETE! INCONCEIVABLE!"
+sProgress100
+         !byte 31
+         !raw "100% COMPLETE! CONGRATULATIONS!"
+sOneSpace
+         !byte 1
+         !raw " "

@@ -54,13 +54,10 @@ ROM_NORMAL =   $FE84      ; NORMAL text (instead of INVERSE or FLASH)
 ROM_IN0 =      $FE89      ; SETKBD
 ROM_PR0 =      $FE93      ; SETVID
 
-; zero page
+; application-specific addresses
 PARAM        = $00        ; word (used by PARAMS_ON_STACK macro)
 HTAB         = $24        ; byte
 VTAB         = $25        ; byte
-
-; application constants
-; zero page
 original_char = $ED       ; byte
 char         = $EE        ; byte
 charrow      = $EF        ; byte

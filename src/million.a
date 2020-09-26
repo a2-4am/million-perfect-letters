@@ -76,10 +76,12 @@ Start                                ; X = Mockingboard slot (from init)
 
          !source "src/ui.title.a"
          !source "src/ui.main.menu.a"
+         !source "src/ui.select.world.a"
          !source "src/ui.reveal.a"
          !source "src/ui.about.a"
          !source "src/ui.interstitial.a"
          !source "src/ui.play.a"
+         !source "src/ui.demo.a"
          !source "src/ui.help.a"
          !source "src/ui.message.a"
          !source "src/ui.common.a"

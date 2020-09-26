@@ -21,6 +21,8 @@
 ; changes to original (by 4am):
 ; - fixes for stereo output
 ; - labels for slot independence (see million.init.a)
+; - MBCHECKKEY to check against a list of keys that will exit
+;
 
 CHN       = $1D
 SONG      = $1E
@@ -54,6 +56,19 @@ LOOP      LDY #$00
           BPL SETNOTE    ;SET DURATION
 END       JSR RESET
           RTS
+
+MBCHECKKEY
+         ldy   #0
+MBCHECK  lda   ($EE), y
+         beq   MBCONTINUE
+         bpl   END
+         iny
+         cmp   $C000
+         beq   END
+         bne   MBCHECK    ; always branches
+MBCONTINUE
+         bit   $C010
+         jmp   NEXT
 
 SETNOTE   STA DURATION
           LDA #LEFTCHN
@@ -92,7 +107,7 @@ W2        DEC TEMP
           BNE W1
           BIT $C000
 MBKEYBRANCH
-          BMI END
+          BMI MBCHECKKEY
           JMP NEXT
 
 CONVFREQ  LDX OCTAVE
@@ -108,7 +123,6 @@ DECOCT    DEX
           JMP DECOCT
 LOBYTE    STA TONE
           RTS
-
 
 RESET     LDA #$00
 MBSLOT09  STA $C400

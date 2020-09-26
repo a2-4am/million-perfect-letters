@@ -36,6 +36,7 @@ FMDEST   sta   $4000, x
          bcs   FM
 
          jsr   GetMockingboardSlot
+         ;ldx   #0                    ; [DEBUG] uncomment to disable Mockingboard support
          cpx   #0
          beq   +
          ; set up MockingDuet routine with the Mockingboard slot number

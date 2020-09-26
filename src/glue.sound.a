@@ -4,9 +4,8 @@
 ; Public functions:
 ; - InitSound
 ; - ReinitSoundAfterPrefChange
-; - LoopSound
-; - PlaySound
 ; - PlaySoundToCompletion
+; - PlaySound
 ; - InitPuzzleSound
 ; - PlayNextChord
 ; - PlayFinalChord
@@ -18,9 +17,6 @@
 
 gSoundPref
          !byte 1                     ; 0 = no sound, 1 = sound
-
-mockingboardSlot                     ; [byte][private]
-         !byte 0                     ; 0 = no Mockingboard, 0xC1..0xC7 = slot number
 
 progressionIndex                     ; [byte][private]
          !byte 0
@@ -55,8 +51,6 @@ k16251Progression
          !word M_V
 kFinalChord
          !word M_I_LONG
-kErrorSound
-         !word M_ERROR
 
 ;------------------------------------------------------------------------------
 ; ReinitSoundAfterPrefChange
@@ -66,7 +60,8 @@ kErrorSound
 ; out:   all flags & registers clobbered
 ;------------------------------------------------------------------------------
 ReinitSoundAfterPrefChange
-         ldx   mockingboardSlot
+mockingboardSlot=*+1
+         ldx   #$FD                  ; SMC
          ; /!\ execution falls through to InitSound
 
 ;------------------------------------------------------------------------------
@@ -80,6 +75,7 @@ InitSound
          stx   mockingboardSlot
          lda   gSoundPref
          beq   @theSoundOfSilence
+kZeroByte=*+1
          cpx   #0
          beq   @playThroughSpeaker
          +LDADDR MockingDuet
@@ -93,71 +89,41 @@ InitSound
          +ST16 SoundLibraryDispatch
          rts
 
--
-         +LD16 $FE
-         ; /!\ execution falls through to LoopSound
-
-;------------------------------------------------------------------------------
-; LoopSound
-; play sound data repeatedly until keypress
-;
-; in:    A/Y points to buffer containing sound data in Electric Duet format
-; out:   A = key pressed
-;        all other flags & registers clobbered
-;------------------------------------------------------------------------------
-LoopSound
-         sec
-         +HIDE_NEXT_BYTE
-         ; /!\ execution falls through to PlaySound
-
-;------------------------------------------------------------------------------
-; PlaySound
-; play sound data once, or until keypress, whichever comes first
-;
-; in:    A/Y points to buffer containing sound data in Electric Duet format
-; out:   N = 1 if exited because key was pressed, and A = key pressed
-;        N = 0 if exited because all sound data was played
-;        all other flags & registers clobbered
-;------------------------------------------------------------------------------
-PlaySound
-         clc
-         php
-         +ST16 $1E
-         +ST16 $FE
-SoundLibraryDispatch=*+1
-         jsr   $FDFD                 ; SMC
-         plp
-         bcc   +
-         lda   KBD
-         bpl   -
-+        lda   KBD
-Silence  rts
-
 ;------------------------------------------------------------------------------
 ; PlaySoundToCompletion
-; play sound data once, ignoring keypresses
+; play sound to completion, ignoring all keypresses
 ;
 ; in:    A/Y points to buffer containing sound data in Electric Duet format
 ; out:   all flags & registers clobbered
 ;------------------------------------------------------------------------------
 PlaySoundToCompletion
-         pha
-         lda   ED0974+1
-         sta   @restoreED
-         lda   MBKEYBRANCH+1
-         sta   @restoreMB
-         lda   #0                    ; just self-modify sound routines to branch
-         sta   ED0974+1              ; to next instruction on keypress, because
-         sta   MBKEYBRANCH+1         ; cycle counts are critical
-         pla
-         jsr   PlaySound
-@restoreED=*+1
-         lda   #$FD                  ; SMC
-         sta   ED0974+1              ; restore sound routines
-@restoreMB=*+1
-         lda   #$FD                  ; SMC
-         sta   MBKEYBRANCH+1
-         rts
+         ldx   #<kZeroByte
+         stx   $EE
+         ldx   #>kZeroByte
+         stx   $EF
+         ; /!\ execution falls through to PlaySound
+
+;------------------------------------------------------------------------------
+; PlaySound
+; play sound until keypress or completion (but see note about acceptable keys)
+;
+; in:    A/Y points to buffer containing sound data in Electric Duet format
+;        $EE/$EF points to list of acceptable keys
+;          keys have high bit set
+;          list is 0x00-terminated
+;          if first byte in list is 0x00, no keys are accepted
+;          0x01 acts as wildcard
+;          if first byte in list is 0x01, all keys are accepted
+; out:   N = 1 if exited because acceptable key was pressed, and A = key pressed
+;        N = 0 if exited because sound was played to completion
+;        all other flags & registers clobbered
+;------------------------------------------------------------------------------
+PlaySound
+         +ST16 $1E
+SoundLibraryDispatch=*+1
+         jsr   $FDFD                 ; SMC
+         lda   KBD
+Silence  rts
 
 ;------------------------------------------------------------------------------
 ; InitPuzzleSound
@@ -243,5 +209,5 @@ PlayFinalChord
 ;        flags clobbered
 ;------------------------------------------------------------------------------
 PlayErrorSound
-         +LD16 kErrorSound
+         +LDADDR M_ERROR
          jmp   PlaySoundToCompletion

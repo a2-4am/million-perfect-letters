@@ -1,0 +1,225 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; select world screen
+;
+; Public functions:
+; - SelectWorld
+;
+
+counter = $F2
+selectedworld = $F3
+
+;------------------------------------------------------------------------------
+; SelectWorld
+; allow user to select world for playing
+;
+; in:    none
+; out:   C clear if world was selected, and
+;          A = 0-based world ID
+;        C set if no world was selected and A is undefined
+;------------------------------------------------------------------------------
+SelectWorld
+         jsr   Home
+         jsr   UpdateWorldPercents
+         +LDADDR worlddescriptions
+         +ST16 $FE
+         lda   #0
+         sta   counter
+         sta   selectedworld
+         lda   #6
+         sta   VTAB
+-        lda   #10
+         sta   HTAB
+         +LD16 $FE
+         ldx   counter
+         cpx   selectedworld
+         beq   +
+         ldx   #20
+         jsr   DrawHeavySilkBuffer
+         jmp   ++
++        ldx   #20
+         jsr   DrawHeavySilkBufferInverse
+++       inc   VTAB
+         lda   $FE
+         clc
+         adc   #20
+         sta   $FE
+         bcc   +
+         inc   $FF
++        inc   counter
+         lda   counter
+         cmp   #12                   ; ignore world 13 (that's for self-running demo)
+         bcc   -
+
+         +PRINT_AT worldhelp, 23, 0
+
+         bit   CLEARKBD
+@selectWorldLoop
+         lda   KBD
+         bpl   @selectWorldLoop
+         bit   CLEARKBD
+         and   #$7F
+         cmp   #$0B                  ; up arrow
+         beq   @eventUpArrow
+         cmp   #$0A                  ; down arrow
+         beq   @eventDownArrow
+         cmp   #$08                  ; left arrow
+         beq   @eventLeftArrow
+         cmp   #$15                  ; right arrow
+         beq   @eventRightArrow
+         cmp   #$0D
+         beq   @eventReturn
+         cmp   #$1B
+         beq   @eventEsc
+         rts
+@eventReturn
+         jsr   Home
+         lda   selectedworld
+         clc
+         rts
+@eventEsc
+         sec
+         rts
+@eventLeftArrow
+@eventUpArrow
+         jsr   RedrawPreviouslySelectedWorld
+         ldx   selectedworld
+         bne   +
+         ldx   #12
++        dex
+         stx   selectedworld
+         jsr   DrawNewlySelectedWorld
+         jmp   @selectWorldLoop
+@eventRightArrow
+@eventDownArrow
+         jsr   RedrawPreviouslySelectedWorld
+         ldx   selectedworld
+         cpx   #11
+         bne   +
+         ldx   #$FF
++        inx
+         stx   selectedworld
+         jsr   DrawNewlySelectedWorld
+         jmp   @selectWorldLoop
+
+RedrawPreviouslySelectedWorld
+         lda   selectedworld
+         tax
+         clc
+         adc   #6
+         sta   VTAB
+         lda   #10
+         sta   HTAB
+         jsr   GetWorldDescription
+         +LD16 $FE
+         ldx   #20
+         jmp   DrawHeavySilkBuffer
+
+DrawNewlySelectedWorld
+         lda   selectedworld
+         tax
+         clc
+         adc   #6
+         sta   VTAB
+         lda   #10
+         sta   HTAB
+         jsr   GetWorldDescription
+         +LD16 $FE
+         ldx   #20
+         jmp   DrawHeavySilkBufferInverse
+
+GetWorldDescription
+; in:    X = 0-based world ID
+; out:   $FE/$FF points to world description buffer
+         +LDADDR worlddescriptions
+         +ST16 $FE
+         jmp   +
+-        lda   $FE
+         clc
+         adc   #20
+         sta   $FE
+         bcc   +
+         inc   $FF
++        dex
+         bpl   -
+         rts
+
+worldindex=$FB
+UpdateWorldPercents
+         +LDADDR worlddescriptions
+         +ST16 $FC
+         lda   #0
+         sta   worldindex
+--       jsr   FindPackedProgressAddr
+         ldy   #$0E
+         lda   ($FE), y
+         tax
+         lda   #$20
+         jsr   ToASCIIString
+         ldx   #2
+         ldy   #17
+-        lda   $F2, x
+         sta   ($FC), y
+         dey
+         dex
+         bpl   -
+         lda   $FC
+         clc
+         adc   #20
+         sta   $FC
+         bcc   +
+         inc   $FD
++        inc   worldindex
+         lda   worldindex
+         cmp   #12
+         bne   --
+         rts
+
+worlddescriptions
+         !raw " 4X3  EASY       0% "
+         !raw " 5X3  BASIC      0% "
+         !raw " 6X3  SIMPLE     0% "
+         !raw " 7X3  RELAXED    0% "
+         !raw " 4X4  FAIR       0% "
+         !raw " 5X4  QUICK      0% "
+         !raw " 6X4  MEDIUM     0% "
+         !raw " 7X4  AVERAGE    0% "
+         !raw " 4X5  HARD       0% "
+         !raw " 5X5  TOUGH      0% "
+         !raw " 6X5  TRICKY     0% "
+         !raw " 7X5  COMPLEX    0% "
+
+kWorldShortNames
+         !byte 3
+         !raw "4X3"
+         !byte 3
+         !raw "5X3"
+         !byte 3
+         !raw "6X3"
+         !byte 3
+         !raw "7X3"
+         !byte 3
+         !raw "4X4"
+         !byte 3
+         !raw "5X4"
+         !byte 3
+         !raw "6X4"
+         !byte 3
+         !raw "7X4"
+         !byte 3
+         !raw "4X5"
+         !byte 3
+         !raw "5X5"
+         !byte 3
+         !raw "6X5"
+         !byte 3
+         !raw "7X5"
+
+kDash
+         !byte 1
+         !raw "-"
+
+worldhelp
+         !byte 40
+         !raw "ARROWS TO SELECT, RETURN TO PLAY, OR ESC"

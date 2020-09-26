@@ -1,0 +1,150 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+; self-running demo
+;
+; Public functions:
+; - RunDemo
+;
+
+; puzzle 0:
+; AOCD,LTLE,IBUH|ABLE,ITCH,LOUD
+
+;------------------------------------------------------------------------------
+; RunDemo
+; run self-running demo until keypress or completion
+;
+; in:    none
+; out:   C = 1
+;        all other registers & flags clobbered
+;------------------------------------------------------------------------------
+RunDemo
+         +LDADDR DemoCode
+         +ST16 GetNextDemoByte+1
+-        jsr   GetNextDemoByte
+         lda   DemoDispatchLo, x
+         sta   @j+1
+         lda   DemoDispatchHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         lda   KBD
+         bpl   -
+         jsr   DemoOnEXIT            ; does not return
+
+LoadDemoPuzzle
+         ; TODO
+         rts
+
+DrawDemoPuzzleChrome
+         ; TODO
+         rts
+
+DemoOnEXIT
+         lda   #$FF
+         sta   gWorldID              ; invalidate cache
+         pla
+         pla
+         sec
+         rts
+
+DemoOnLOAD
+         jsr   GetNextDemoByte
+         stx   gPuzzleID
+         jsr   GetNextDemoByte
+         stx   gWorldID
+         lda   kWorldLeftMargins, x
+         sta   GlobalLeftMargin
+         lda   kPuzzleWidths, x
+         jsr   InitPuzzleStorage
+         jsr   InitPuzzleSound
+         ldx   gPuzzleID
+         jsr   LoadDemoPuzzle
+         lda   #0
+         sta   gSelectedLogicalColumn
+         jsr   DrawDemoPuzzleChrome
+         jsr   DrawPuzzle
+         jsr   AnimatePuzzleIntoPlace
+         jmp   DrawColumnSelectionIndicator
+
+DemoOnSHOW
+         jsr   GetNextDemoByte
+         txa
+         pha
+         jsr   GetNextDemoByte
+         txa
+         tay
+         pla
+         jsr   SetNextMessage
+         jmp   ShowMessage
+
+DemoOnHIDE=HideMessage
+DemoOnLEFT=PlayEventLeftArrow
+DemoOnRIGHT=PlayEventRightArrow
+DemoOnUP=PlayEventUpArrow
+DemoOnDOWN=PlayEventDownArrow
+
+DemoOnWAIT
+         jsr   GetNextDemoByte
+         jmp   LongWaitForKeyWithTimeout
+
+GetNextDemoByte
+         ldx   $FDFD                 ; SMC
+         inc   GetNextDemoByte+1
+         bne   +
+         inc   GetNextDemoByte+2
++        rts
+
+DemoDispatchLo
+         !byte <DemoOnEXIT
+         !byte <DemoOnLOAD
+         !byte <DemoOnSHOW
+         !byte <DemoOnHIDE
+         !byte <DemoOnLEFT
+         !byte <DemoOnRIGHT
+         !byte <DemoOnUP
+         !byte <DemoOnDOWN
+         !byte <DemoOnWAIT
+DemoDispatchHi
+         !byte >DemoOnEXIT
+         !byte >DemoOnLOAD
+         !byte >DemoOnSHOW
+         !byte >DemoOnHIDE
+         !byte >DemoOnLEFT
+         !byte >DemoOnRIGHT
+         !byte >DemoOnUP
+         !byte >DemoOnDOWN
+         !byte >DemoOnWAIT
+
+; opcodes
+EXIT                      = 0
+LOAD                      = 1
+SHOW                      = 2
+HIDE                      = 3
+LEFT                      = 4
+RIGHT                     = 5
+UP                        = 6
+DOWN                      = 7
+WAIT                      = 8
+
+sUpDown
+         !byte 24
+         !raw  "MOVE COLUMNS UP AND DOWN"
+sColumns
+         !byte 20
+         !raw  "MOVE BETWEEN COLUMNS"
+
+DemoCode
+         !byte LOAD ,0,0
+         !byte SHOW ,<sUpDown,>sUpDown
+         !byte WAIT ,10
+         !byte HIDE
+         !byte UP
+         !byte WAIT ,5
+         !byte UP
+         !byte WAIT ,5
+         !byte DOWN
+         !byte WAIT ,5
+         !byte SHOW ,<sColumns,>sColumns
+         !byte WAIT ,10
+         !byte HIDE
+         !byte EXIT

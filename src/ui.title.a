@@ -7,22 +7,17 @@
 ; Public functions:
 ; - TitlePage
 ;
-; Public constants:
-; - kTitleLine1
-; - kTitleLine2
-; - kTitleLine3
 
 titlechar = $FD
-kTitleLine1
-         !byte 7
-         !raw "MILLION"
-kTitleLine2
-         !byte 7
-         !raw "PERFECT"
-kTitleLine3
-         !byte 7
-         !raw "LETTERS"
 
+;------------------------------------------------------------------------------
+; TitlePage
+; display animated title page until keypress or completion
+;
+; in:    none
+; out:   C = 0 if animation completed
+;        C = 1 if key was pressed to exit animation prematurely
+;------------------------------------------------------------------------------
 TitlePage
          jsr   Home
          lda   #$01
@@ -51,9 +46,6 @@ TitlePage
          lda   @rnd1+1
          eor   #$41
          sta   @rnd1+1
-         ;lda   @rnd2+1
-         ;eor   #$00
-         ;sta   @rnd2+1
 +
          cpy   #$76
          bcs   @loop
@@ -79,11 +71,11 @@ TitlePage
          beq   @line3
 @random  lda   titlechar
          jmp   +                     ; can't use a BNE because <titlechar> will actually be 0 the third time around
-@line1   lda   kTitleLine1-2, y
+@line1   lda   sTitleLine1-2, y
          bne   +
-@line2   lda   kTitleLine2-2, y
+@line2   lda   sTitleLine2-2, y
          bne   +
-@line3   lda   kTitleLine3-2, y
+@line3   lda   sTitleLine3-2, y
 +        jsr   DrawLargeCharacter
          lda   titlechar
          beq   +
@@ -110,12 +102,9 @@ TitlePage
          cmp   #1
          bne   @loop
 
-         ldx   #3
--        lda   #$00
-         jsr   WaitForKeyWithTimeout
+         ldx   #4
+         jsr   LongWaitForKeyWithTimeout
          bmi   @prematureexit
-         dex
-         bne   -
 
          lda   titlechar
          beq   @phase2
@@ -141,3 +130,13 @@ TitlePage
          cpy   #$0A
          bne   --
          beq   @exit                 ; always branches
+
+sTitleLine1
+         !byte 7
+         !raw "MILLION"
+sTitleLine2
+         !byte 7
+         !raw "PERFECT"
+sTitleLine3
+         !byte 7
+         !raw "LETTERS"

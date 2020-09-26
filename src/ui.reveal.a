@@ -16,7 +16,10 @@ randomchar = $F3
 revealchar = $F4
 revealtext = $FE
 
-HeavySilkReveal
+;------------------------------------------------------------------------------
+; HeavySilkReveal
+; display animation with small letters to reveal hidden text
+;
 ; in:    A/Y points to length-prefixed string to reveal
 ;        targetVTAB contains 0-based row for reveal string (0..39 but no wrapping so be careful)
 ;        minHTAB contains starting 0-based column for reveal string (0..23)
@@ -26,7 +29,8 @@ HeavySilkReveal
 ;        randomchar clobbered
 ;        revealchar clobbered
 ;        revealtext clobbered [word]
-
+;------------------------------------------------------------------------------
+HeavySilkReveal
          +ST16 revealtext
          ldy   #0
          lda   (revealtext), y
@@ -101,8 +105,7 @@ HeavySilkReveal
          sta   @revealStartingChar
          lda   #$20
          bne   @outerloop            ; always branches
-@exit
-         rts
+@exit    rts
 @draw
          ; check if this position is part of the reveal text
          lda   VTAB

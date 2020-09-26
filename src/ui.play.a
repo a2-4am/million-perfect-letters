@@ -79,7 +79,7 @@ kPlayKeyHandlersHi
 ; in:    puzzle has been loaded into memory, drawn on screen, animated, &c.
 ;        and is ready to play
 ; out:   X = reason why event loop ended (see list above)
-;        all other registers and flags clobbered
+;        all other registers & flags clobbered
 ;------------------------------------------------------------------------------
 PlayEventLoop
          bit   CLEARKBD
@@ -310,14 +310,11 @@ AnimatePuzzleIntoPlace
 ; in:    none
 ; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
-kLevel
-         !byte 5
-         !raw  "LEVEL"
 DrawPuzzleChrome
-         +PRINT_AT kTitleLine1, 0, 0
-         +PRINT_AT kTitleLine2, 1, 0
-         +PRINT_AT kTitleLine3, 2, 0
-         +PRINT_AT kLevel, 0, 34
+         +PRINT_AT sTitleLine1, 0, 0
+         +PRINT_AT sTitleLine2, 1, 0
+         +PRINT_AT sTitleLine3, 2, 0
+         +PRINT_AT sLevel, 0, 34
          +LDADDR kWorldShortNames
          +ST16 $FE
          lda   gWorldID
@@ -465,3 +462,7 @@ DrawOneSelectionIndicator
          dex
          bne   -
          rts
+
+sLevel
+         !byte 5
+         !raw  "LEVEL"

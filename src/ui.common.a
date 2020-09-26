@@ -6,6 +6,7 @@
 ; Public functions:
 ; - Home
 ; - WaitForKeyWithTimeout
+; - LongWaitForKeyWithTimeout
 ; - ScrollDown
 ; - ScrollDownBy
 ; - ScrollUp
@@ -81,6 +82,8 @@ Home
 ; in:    A = timeout length (like standard $FCA8 wait routine)
 ; out:   A = 0
 ;        X/Y preserved
+;        N = 1 if key was pressed to exit early
+;        N = 0 if time ran out
 ;------------------------------------------------------------------------------
 WaitForKeyWithTimeout
          sec
@@ -93,6 +96,24 @@ WaitForKeyWithTimeout
          sbc   #1
          bne   @wait1
 @exit    rts
+
+;------------------------------------------------------------------------------
+; LongWaitForKeyWithTimeout
+; just what it says on the tin
+;
+; in:    X = number of iterations for an A=0 wait loop
+; out:   A,X = 0
+;        Y preserved
+;        N = 1 if key was pressed to exit early
+;        N = 0 if time ran out
+;------------------------------------------------------------------------------
+LongWaitForKeyWithTimeout
+         lda   #0
+-        jsr   WaitForKeyWithTimeout
+         bmi   +
+         dex
+         bne   -
++        rts
 
 ;------------------------------------------------------------------------------
 ; ScrollDown

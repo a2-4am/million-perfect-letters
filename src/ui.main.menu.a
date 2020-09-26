@@ -1,7 +1,7 @@
 ;license:MIT
 ;(c) 2020 by 4am
 ;
-; main menu & select world screen
+; main menu
 ;
 ; Public functions:
 ; - MainMenuEventLoop
@@ -14,14 +14,16 @@ kStartPlaying = 2
 
 kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandlersLo/Hi arrays
                                      ; except for last byte ($00) which doesn't need an associated handler
-         !byte $0D                   ; Return
-         !byte $43                   ; C/c
-         !byte $03                   ; Ctrl-C
-         !byte $53                   ; S/s
-         !byte $13                   ; Ctrl-S
-         !byte $51                   ; Q/q
-         !byte $11                   ; Ctrl-Q
-         !byte $1B                   ; Esc
+         !byte $8D                   ; Return
+         !byte $C3                   ; C
+         !byte $E3                   ; c
+         !byte $D3                   ; S
+         !byte $F3                   ; s
+         !byte $C4                   ; D
+         !byte $E4                   ; d
+         !byte $D1                   ; Q
+         !byte $F1                   ; q
+         !byte $9B                   ; Esc
          !byte $00
 
 kMainMenuKeyHandlersLo
@@ -30,6 +32,8 @@ kMainMenuKeyHandlersLo
          !byte <MainMenuEventC
          !byte <MainMenuEventS
          !byte <MainMenuEventS
+         !byte <MainMenuEventD
+         !byte <MainMenuEventD
          !byte <MainMenuEventQ
          !byte <MainMenuEventQ
          !byte <MainMenuEventQ
@@ -40,6 +44,8 @@ kMainMenuKeyHandlersHi
          !byte >MainMenuEventC
          !byte >MainMenuEventS
          !byte >MainMenuEventS
+         !byte >MainMenuEventD
+         !byte >MainMenuEventD
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
          !byte >MainMenuEventQ
@@ -63,27 +69,24 @@ MainMenuEventLoop
 +        jsr   DrawMainMenuText
 
          bit   CLEARKBD
-         +LDADDR MainMenuMusic
-         jsr   LoopSound
-         bit   CLEARKBD
-         and   #$7F
-         cmp   #$7B
-         bcs   +
-         cmp   #$61
-         bcc   +
-         sbc   #$20                  ; a-z -> A-Z
-+        sta   gLastKeyPressed
 
+LoopMusic
+         +LDADDR kMainMenuKeys
+         +ST16 $EE
+         +LDADDR MainMenuMusic
+         jsr   PlaySound
+         bpl   LoopMusic             ; music played to completion, so start over
+         bit   CLEARKBD
++        sta   gLastKeyPressed
          ldx   #0
 -        ldy   kMainMenuKeys, x
-         beq   MainMenuEventLoop
          cpy   gLastKeyPressed
-         beq   @dispatch
+         beq   +
          inx
          bne   -
-         beq   MainMenuEventLoop
-@dispatch
-         lda   kMainMenuKeyHandlersLo, x
+         ; /!\ execution never reaches here
+         brk
++        lda   kMainMenuKeyHandlersLo, x
          sta   @j+1
          lda   kMainMenuKeyHandlersHi, x
          sta   @j+2
@@ -98,6 +101,10 @@ MainMenuEventReturn
                                      ; C=0 so grand-caller will start playing
                                      ; A=world ID (from SelectWorld)
          rts
+
+MainMenuEventD
+         jsr   RunDemo
+         bcs   +                     ; always branches
 
 MainMenuEventC
          jsr   AboutPage
@@ -126,13 +133,13 @@ DrawMainMenuTitle
          sta   GlobalLeftMargin
          ldy   #3
 -        ldx   #1
-         lda   kTitleLine1-2, y
+         lda   sTitleLine1-2, y
          jsr   DrawLargeCharacter
          inx
-         lda   kTitleLine2-2, y
+         lda   sTitleLine2-2, y
          jsr   DrawLargeCharacter
          inx
-         lda   kTitleLine3-2, y
+         lda   sTitleLine3-2, y
          jsr   DrawLargeCharacter
          iny
          cpy   #$0A
@@ -140,259 +147,50 @@ DrawMainMenuTitle
          rts
 
 DrawMainMenuText
-         +PRINT_AT asterisk, 2, 30
-         +PRINT_AT version, 11, 26
-         +PRINT_AT mainmenu_play, 15, 10
-         +PRINT_AT mainmenu_sound, 16, 10
+         +PRINT_AT sAsterisk, 2, 30
+         +PRINT_AT sVersion, 11, 26
+         +PRINT_AT sMainMenuPlay, 15, 10
+         +PRINT_AT sMainMenuSound, 16, 10
          lda   gSoundPref
          beq   @theSoundOfSilence
-         +LDADDR mainmenu_sound_on
+         +LDADDR sMainMenuSoundOn
          bne   +                     ; always branches
 @theSoundOfSilence
-         +LDADDR mainmenu_sound_off
+         +LDADDR sMainMenuSoundOff
 +        jsr   DrawHeavySilkString
-         +PRINT_AT mainmenu_about, 17, 10
-         +PRINT_AT mainmenu_quit, 18, 10
-         +PRINT_AT disclaimer, 23, 0
+         +PRINT_AT sMainMenuAbout, 17, 10
+         +PRINT_AT sMainMenuDemo, 18, 10
+         +PRINT_AT sMainMenuQuit, 19, 10
+         +PRINT_AT sMainMenuDisclaimer, 23, 0
          rts
 
-counter = $F2
-selectedworld = $F3
-
-SelectWorld
-; [private]
-; in:    none
-; out:   C clear if world was selected, and
-;          A = 0-based world ID
-;        C set if no world was selected and A is undefined
-         jsr   Home
-         jsr   UpdateWorldPercents
-         +LDADDR worlddescriptions
-         +ST16 $FE
-         lda   #0
-         sta   counter
-         sta   selectedworld
-         lda   #6
-         sta   VTAB
--        lda   #10
-         sta   HTAB
-         +LD16 $FE
-         ldx   counter
-         cpx   selectedworld
-         beq   +
-         ldx   #20
-         jsr   DrawHeavySilkBuffer
-         jmp   ++
-+        ldx   #20
-         jsr   DrawHeavySilkBufferInverse
-++       inc   VTAB
-         lda   $FE
-         clc
-         adc   #20
-         sta   $FE
-         bcc   +
-         inc   $FF
-+        inc   counter
-         lda   counter
-         cmp   #12
-         bcc   -
-
-         +PRINT_AT worldhelp, 23, 0
-
-         bit   CLEARKBD
-@selectWorldLoop
-         lda   KBD
-         bpl   @selectWorldLoop
-         bit   CLEARKBD
-         and   #$7F
-         cmp   #$0B                  ; up arrow
-         beq   @eventUpArrow
-         cmp   #$0A                  ; down arrow
-         beq   @eventDownArrow
-         cmp   #$08                  ; left arrow
-         beq   @eventLeftArrow
-         cmp   #$15                  ; right arrow
-         beq   @eventRightArrow
-         cmp   #$0D
-         beq   @eventReturn
-         cmp   #$1B
-         beq   @eventEsc
-         rts
-@eventReturn
-         jsr   Home
-         lda   selectedworld
-         clc
-         rts
-@eventEsc
-         sec
-         rts
-@eventLeftArrow
-@eventUpArrow
-         jsr   RedrawPreviouslySelectedWorld
-         ldx   selectedworld
-         bne   +
-         ldx   #12
-+        dex
-         stx   selectedworld
-         jsr   DrawNewlySelectedWorld
-         jmp   @selectWorldLoop
-@eventRightArrow
-@eventDownArrow
-         jsr   RedrawPreviouslySelectedWorld
-         ldx   selectedworld
-         cpx   #11
-         bne   +
-         ldx   #$FF
-+        inx
-         stx   selectedworld
-         jsr   DrawNewlySelectedWorld
-         jmp   @selectWorldLoop
-
-RedrawPreviouslySelectedWorld
-         lda   selectedworld
-         tax
-         clc
-         adc   #6
-         sta   VTAB
-         lda   #10
-         sta   HTAB
-         jsr   GetWorldDescription
-         +LD16 $FE
-         ldx   #20
-         jmp   DrawHeavySilkBuffer
-
-DrawNewlySelectedWorld
-         lda   selectedworld
-         tax
-         clc
-         adc   #6
-         sta   VTAB
-         lda   #10
-         sta   HTAB
-         jsr   GetWorldDescription
-         +LD16 $FE
-         ldx   #20
-         jmp   DrawHeavySilkBufferInverse
-
-GetWorldDescription
-; in:    X = 0-based world ID
-; out:   $FE/$FF points to world description buffer
-         +LDADDR worlddescriptions
-         +ST16 $FE
-         jmp   +
--        lda   $FE
-         clc
-         adc   #20
-         sta   $FE
-         bcc   +
-         inc   $FF
-+        dex
-         bpl   -
-         rts
-
-worldindex=$FB
-UpdateWorldPercents
-         +LDADDR worlddescriptions
-         +ST16 $FC
-         lda   #0
-         sta   worldindex
---       jsr   FindPackedProgressAddr
-         ldy   #$0E
-         lda   ($FE), y
-         tax
-         lda   #$20
-         jsr   ToASCIIString
-         ldx   #2
-         ldy   #17
--        lda   $F2, x
-         sta   ($FC), y
-         dey
-         dex
-         bpl   -
-         lda   $FC
-         clc
-         adc   #20
-         sta   $FC
-         bcc   +
-         inc   $FD
-+        inc   worldindex
-         lda   worldindex
-         cmp   #12
-         bne   --
-         rts
-
-asterisk
+sAsterisk
          !byte 1
          !byte "*"
-version
+sVersion
          !byte 4
          !raw  "V0.4"
-mainmenu_play
+sMainMenuPlay
          !byte 20
          !raw  "RETURN.....PLAY GAME"
-mainmenu_sound
+sMainMenuSound
          !byte 18
          !raw  "     S.....SOUND ("
-mainmenu_sound_on
+sMainMenuSoundOn
          !byte 4
          !raw  "ON) "
-mainmenu_sound_off
+sMainMenuSoundOff
          !byte 4
          !raw  "OFF)"
-mainmenu_about
+sMainMenuAbout
          !byte 18
          !raw  "     C.....CREDITS"
-mainmenu_quit
+sMainMenuDemo
+         !byte 15
+         !raw  "     D.....DEMO"
+sMainMenuQuit
          !byte 15
          !raw  "     Q.....QUIT"
-disclaimer
+sMainMenuDisclaimer
          !byte 40
          !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."
-
-worlddescriptions
-         !raw " 4X3  EASY       0% "
-         !raw " 5X3  BASIC      0% "
-         !raw " 6X3  SIMPLE     0% "
-         !raw " 7X3  RELAXED    0% "
-         !raw " 4X4  FAIR       0% "
-         !raw " 5X4  QUICK      0% "
-         !raw " 6X4  MEDIUM     0% "
-         !raw " 7X4  AVERAGE    0% "
-         !raw " 4X5  HARD       0% "
-         !raw " 5X5  TOUGH      0% "
-         !raw " 6X5  TRICKY     0% "
-         !raw " 7X5  COMPLEX    0% "
-
-kWorldShortNames
-         !byte 3
-         !raw "4X3"
-         !byte 3
-         !raw "5X3"
-         !byte 3
-         !raw "6X3"
-         !byte 3
-         !raw "7X3"
-         !byte 3
-         !raw "4X4"
-         !byte 3
-         !raw "5X4"
-         !byte 3
-         !raw "6X4"
-         !byte 3
-         !raw "7X4"
-         !byte 3
-         !raw "4X5"
-         !byte 3
-         !raw "5X5"
-         !byte 3
-         !raw "6X5"
-         !byte 3
-         !raw "7X5"
-
-kDash
-         !byte 1
-         !raw "-"
-
-worldhelp
-         !byte 40
-         !raw "ARROWS TO SELECT, RETURN TO PLAY, OR ESC"
