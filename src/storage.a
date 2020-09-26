@@ -59,7 +59,7 @@ MaybeLoadWorldFromDisk
          !word $2F00                 ; maximum length
          !word WORLDFILEBUFFER       ; address of ProDOS file buffer
          bcs   @exit
-         jsr   @PreParseWorldData
+         jsr   PreParseWorldData
          cpx   #100
          bne   +
          clc
@@ -72,7 +72,7 @@ MaybeLoadWorldFromDisk
          !byte 1                     ; length
          !raw  $FD                   ; SMC
 
-@PreParseWorldData
+PreParseWorldData
 ; find the starting address of each of the 100 puzzles in this world
 ; in:    $9000+ contains raw world data from disk
          lda   #$FF
@@ -107,7 +107,7 @@ MaybeLoadWorldFromDisk
          lda   ($FE),y
          cmp   #$0D                  ; CR - hide it
          beq   @IncAndGetChar
-         rts
+@exit    rts
 
 ;------------------------------------------------------------------------------
 ; LoadProgressFromDisk

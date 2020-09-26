@@ -19,6 +19,8 @@
 ;        all other registers & flags clobbered
 ;------------------------------------------------------------------------------
 RunDemo
+         jsr   Home
+         jsr   LoadDemoPuzzles
          +LDADDR DemoCode
          +ST16 GetNextDemoByte+1
 -        jsr   GetNextDemoByte
@@ -31,13 +33,24 @@ RunDemo
          bpl   -
          jsr   DemoOnEXIT            ; does not return
 
-LoadDemoPuzzle
-         ; TODO
-         rts
+LoadDemoPuzzles
+         ldx   #0
+-        lda   demoPuzzles, x
+         sta   WORLDDATA, x
+         inx
+         bne   -
+         jmp   PreParseWorldData
 
 DrawDemoPuzzleChrome
-         ; TODO
-         rts
+         +PRINT_AT sDemo, 2, 33
+         lda   gPuzzleID
+         clc
+         adc   #$31
+         sta   @s+1
+         +LDADDR @s
+         jsr   DrawHeavySilkString
+         jmp   DrawPuzzleChromeCommon
+@s       !byte 1,$FD
 
 DemoOnEXIT
          lda   #$FF
@@ -58,7 +71,7 @@ DemoOnLOAD
          jsr   InitPuzzleStorage
          jsr   InitPuzzleSound
          ldx   gPuzzleID
-         jsr   LoadDemoPuzzle
+         jsr   LoadPuzzleFromMemory
          lda   #0
          sta   gSelectedLogicalColumn
          jsr   DrawDemoPuzzleChrome
@@ -125,6 +138,14 @@ RIGHT                     = 5
 UP                        = 6
 DOWN                      = 7
 WAIT                      = 8
+
+demoPuzzles
+         !raw  "AOCD,LTLE,IBUH|ABLE,ITCH,LOUD",$0A
+         !raw  "["
+
+sDemo
+         !byte 6
+         !raw  "DEMO-0"
 
 sUpDown
          !byte 24

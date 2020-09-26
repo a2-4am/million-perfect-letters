@@ -10,7 +10,7 @@
 ;
 
 ;------------------------------------------------------------------------------
-; DrawLargeCharacter
+; DrawHeavySilkString
 ;
 ; in:    A/Y contains address of length-prefixed string (length 1..40,
 ;          characters 0x20..0x5A only)

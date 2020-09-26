@@ -311,10 +311,6 @@ AnimatePuzzleIntoPlace
 ; out:   all registers and flags clobbered
 ;------------------------------------------------------------------------------
 DrawPuzzleChrome
-         +PRINT_AT sTitleLine1, 0, 0
-         +PRINT_AT sTitleLine2, 1, 0
-         +PRINT_AT sTitleLine3, 2, 0
-         +PRINT_AT sLevel, 0, 34
          +LDADDR kWorldShortNames
          +ST16 $FE
          lda   gWorldID
@@ -339,7 +335,14 @@ DrawPuzzleChrome
          lda   #$30                  ; padding character ('0')
          jsr   ToASCIIString
          +LDADDR $00F1
-         jmp   DrawHeavySilkString
+         jsr   DrawHeavySilkString
+DrawPuzzleChromeCommon
+         +PRINT_AT sTitleLine1, 0, 0
+         +PRINT_AT sTitleLine2, 1, 0
+         +PRINT_AT sTitleLine3, 2, 0
+         +PRINT_AT sLevel, 0, 34
+         rts
+
 
 ;------------------------------------------------------------------------------
 ; AnimatePuzzleCompleted
