@@ -34,10 +34,10 @@ puzzle_data5          = $0332        ; [0x08 bytes]
 puzzle_data6          = $033A        ; [0x08 bytes]
 puzzle_data7          = $0342        ; [0x08 bytes]
 puzzle_data8          = $034A        ; [0x08 bytes]
-puzzle_word_count     = $0352        ; [0x01 byte ] number of records in <puzzle_words>
-puzzle_words          = $0353        ; [0x80 bytes]
+target_word_count     = $0352        ; [0x01 byte ] number of records in <target_words>
+target_words          = $0353        ; [0x80 bytes]
                                      ; each 8-byte record is a <puzzle_logical_width>-length word, no prefix
-                                     ; extra bytes in each record are ignored
+                                     ; extra bytes in each record are guaranteed to be 0x00
 
 ;------------------------------------------------------------------------------
 ; InitPuzzleStorage
@@ -94,19 +94,19 @@ AddLineToPuzzle
 ; out:   all registers & flags clobbered
 ;------------------------------------------------------------------------------
 AddTargetWordToPuzzle
-         lda   puzzle_word_count
+         lda   target_word_count
          asl
          asl
          asl
          tax
          ldy   #0
 -        lda   ($FE), y
-         sta   puzzle_words, x
+         sta   target_words, x
          inx
          iny
          cpy   puzzle_logical_width
          bne   -
-         inc   puzzle_word_count
+         inc   target_word_count
          rts
 
 unused_counter=$FD
@@ -123,7 +123,7 @@ unused_counter=$FD
 ;        all other registers & flags clobbered
 ;------------------------------------------------------------------------------
 CheckForTargetWord
-         +LDADDR puzzle_words
+         +LDADDR target_words
          +ST16 $FE
          ldx   #0                    ; word index
 @checkword
@@ -159,7 +159,7 @@ CheckForTargetWord
          bcc   +
          inc   $FF
 +        inx
-         cpx   puzzle_word_count
+         cpx   target_word_count
          bne   @checkword
 @notfound
          sec

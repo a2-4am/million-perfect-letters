@@ -7,9 +7,6 @@
 ; - RunDemo
 ;
 
-; puzzle 0:
-; AOCD,LTLE,IBUH|ABLE,ITCH,LOUD
-
 ;------------------------------------------------------------------------------
 ; RunDemo
 ; run self-running demo until keypress or completion
@@ -123,8 +120,22 @@ DemoOnNEXT=AnimatePuzzleCompleted
 
 DemoOnTYPE
          jsr   GetNextDemoByte
-         stx   gLastKeyPressed
-         jmp   PlayEventLetter
+         txa
+         asl
+         asl
+         asl
+-        tax
+         pha
+         lda   target_words, x
+         beq   +
+         sta   gLastKeyPressed
+         jsr   PlayEventLetter
+         pla
+         clc
+         adc   #1
+         bcc   -
++        pla
+         rts
 
 GetNextDemoByte
          ldx   $FDFD                 ; SMC
@@ -267,146 +278,54 @@ DemoCode
          !byte LOAD ,1,4
          !byte WAIT ,30
          !byte HIDE
-         !byte TYPE ,"T"
-         !byte TYPE ,"A"
-         !byte TYPE ,"C"
-         !byte TYPE ,"O"
+         !byte TYPE ,2
          !byte WAIT ,20
-         !byte TYPE ,"W"
-         !byte TYPE ,"I"
-         !byte TYPE ,"T"
-         !byte TYPE ,"S"
+         !byte TYPE ,3
          !byte WAIT ,20
-         !byte TYPE ,"D"
-         !byte TYPE ,"E"
-         !byte TYPE ,"F"
-         !byte TYPE ,"Y"
+         !byte TYPE ,0
          !byte WAIT ,20
-         !byte TYPE ,"F"
-         !byte TYPE ,"L"
-         !byte TYPE ,"O"
-         !byte TYPE ,"P"
+         !byte TYPE ,1
          !byte NEXT
          !byte LOAD ,2,1
          !byte WAIT ,30
          !byte HIDE
-         !byte TYPE ,"G"
-         !byte TYPE ,"R"
-         !byte TYPE ,"O"
-         !byte TYPE ,"W"
-         !byte TYPE ,"L"
+         !byte TYPE ,2
          !byte WAIT ,20
-         !byte TYPE ,"C"
-         !byte TYPE ,"Y"
-         !byte TYPE ,"C"
-         !byte TYPE ,"L"
-         !byte TYPE ,"E"
+         !byte TYPE ,1
          !byte WAIT ,20
-         !byte TYPE ,"A"
-         !byte TYPE ,"D"
-         !byte TYPE ,"M"
-         !byte TYPE ,"I"
-         !byte TYPE ,"T"
+         !byte TYPE ,0
          !byte NEXT
          !byte LOAD ,3,6
          !byte WAIT ,30
          !byte HIDE
-         !byte TYPE ,"V"
-         !byte TYPE ,"O"
-         !byte TYPE ,"O"
-         !byte TYPE ,"D"
-         !byte TYPE ,"O"
-         !byte TYPE ,"O"
+         !byte TYPE ,3
          !byte WAIT ,20
-         !byte TYPE ,"E"
-         !byte TYPE ,"L"
-         !byte TYPE ,"I"
-         !byte TYPE ,"X"
-         !byte TYPE ,"I"
-         !byte TYPE ,"R"
+         !byte TYPE ,1
          !byte WAIT ,20
-         !byte TYPE ,"H"
-         !byte TYPE ,"I"
-         !byte TYPE ,"J"
-         !byte TYPE ,"A"
-         !byte TYPE ,"C"
-         !byte TYPE ,"K"
+         !byte TYPE ,2
          !byte WAIT ,20
-         !byte TYPE ,"B"
-         !byte TYPE ,"A"
-         !byte TYPE ,"B"
-         !byte TYPE ,"I"
-         !byte TYPE ,"E"
-         !byte TYPE ,"S"
+         !byte TYPE ,0
          !byte NEXT
          !byte LOAD ,4,11
          !byte WAIT ,30
          !byte HIDE
-         !byte TYPE ,"L"
-         !byte TYPE ,"A"
-         !byte TYPE ,"U"
-         !byte TYPE ,"N"
-         !byte TYPE ,"D"
-         !byte TYPE ,"R"
-         !byte TYPE ,"Y"
+         !byte TYPE ,1
          !byte WAIT ,20
-         !byte TYPE ,"S"
-         !byte TYPE ,"H"
-         !byte TYPE ,"O"
-         !byte TYPE ,"R"
-         !byte TYPE ,"T"
-         !byte TYPE ,"E"
-         !byte TYPE ,"D"
+         !byte TYPE ,3
          !byte WAIT ,20
-         !byte TYPE ,"E"
-         !byte TYPE ,"X"
-         !byte TYPE ,"H"
-         !byte TYPE ,"A"
-         !byte TYPE ,"U"
-         !byte TYPE ,"S"
-         !byte TYPE ,"T"
+         !byte TYPE ,0
          !byte WAIT ,20
-         !byte TYPE ,"T"
-         !byte TYPE ,"E"
-         !byte TYPE ,"R"
-         !byte TYPE ,"R"
-         !byte TYPE ,"A"
-         !byte TYPE ,"C"
-         !byte TYPE ,"E"
+         !byte TYPE ,4
          !byte WAIT ,20
-         !byte TYPE ,"R"
-         !byte TYPE ,"E"
-         !byte TYPE ,"L"
-         !byte TYPE ,"A"
-         !byte TYPE ,"T"
-         !byte TYPE ,"E"
-         !byte TYPE ,"S"
+         !byte TYPE ,2
          !byte NEXT
          !byte LOAD ,5,3
          !byte WAIT ,30
          !byte HIDE
-         !byte TYPE ,"M"
-         !byte TYPE ,"I"
-         !byte TYPE ,"L"
-         !byte TYPE ,"L"
-         !byte TYPE ,"I"
-         !byte TYPE ,"O"
-         !byte TYPE ,"N"
+         !byte TYPE ,0
          !byte WAIT ,20
-         !byte TYPE ,"P"
-         !byte TYPE ,"E"
-         !byte TYPE ,"R"
-         !byte TYPE ,"F"
-         !byte TYPE ,"E"
-         !byte TYPE ,"C"
-         !byte TYPE ,"T"
+         !byte TYPE ,1
          !byte WAIT ,20
-         !byte TYPE ,"L"
-         !byte TYPE ,"E"
-         !byte TYPE ,"T"
-         !byte TYPE ,"T"
-         !byte TYPE ,"E"
-         !byte TYPE ,"R"
-         !byte TYPE ,"S"
+         !byte TYPE ,2
          !byte NEXT
          !byte EXIT
