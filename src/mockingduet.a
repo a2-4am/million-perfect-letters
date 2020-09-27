@@ -40,47 +40,47 @@ MockingDuet
           JSR INIT
           JSR RESET
           JSR ENACHN
-          JMP LOOP
+          JMP MBLOOP
 
 SETVOL
-NEXT      LDA SONG
+MBNEXT    LDA SONG
           CLC
           ADC #$03
           STA SONG
-          BCC LOOP
+          BCC MBLOOP
           INC SONG+1
-LOOP      LDY #$00
+MBLOOP    LDY #$00
           LDA (SONG),Y
           CMP #$01
           BEQ SETVOL
           BPL SETNOTE    ;SET DURATION
-END       JSR RESET
+MBEND     JSR RESET
           RTS
 
 MBCHECKKEY
          ldy   #0
 MBCHECK  lda   ($EE), y
          beq   MBCONTINUE
-         bpl   END
+         bpl   MBEND
          iny
          cmp   $C000
-         beq   END
+         beq   MBEND
          bne   MBCHECK    ; always branches
 MBCONTINUE
          bit   $C010
-         jmp   NEXT
+         jmp   MBNEXT
 
 SETNOTE   STA DURATION
           LDA #LEFTCHN
-SEND      STA CHN
+MBSEND    STA CHN
 MBSLOT01  STA $C401
 MBSLOT02  STA $C481
           JSR SETREG1
           INY
           LDA (SONG),Y
-          BEQ SKIP       ;IF 0 KEEP LTTSA
+          BEQ MBSKIP     ;IF 0 KEEP LTTSA
           JSR CONVFREQ
-SKIP      LDA TONE
+MBSKIP    LDA TONE
 MBSLOT03  STA $C401
 MBSLOT04  STA $C481
           JSR WRDATA1
@@ -96,7 +96,7 @@ MBSLOT08  STA $C481
           LDA #RIGHTCHN
           STA CHN
           CPY #$02
-          BNE SEND
+          BNE MBSEND
           LDX DURATION
 W1        LDY TEMPO
 W2        DEC TEMP
@@ -108,7 +108,7 @@ W2        DEC TEMP
           BIT $C000
 MBKEYBRANCH
           BMI MBCHECKKEY
-          JMP NEXT
+          JMP MBNEXT
 
 CONVFREQ  LDX OCTAVE
           INX

@@ -20,6 +20,12 @@
 ;------------------------------------------------------------------------------
 RunDemo
          jsr   Home
+         lda   #7
+         sta   targetVTAB
+         lda   #10
+         sta   minHTAB
+         +LDADDR sThereAre
+         jsr   HeavySilkReveal
          jsr   LoadDemoPuzzles
          +LDADDR DemoCode
          +ST16 GetNextDemoByte+1
@@ -100,6 +106,8 @@ DemoOnWAIT
          jsr   GetNextDemoByte
          jmp   LongWaitForKeyWithTimeout
 
+DemoOnNEXT=AnimatePuzzleCompleted
+
 GetNextDemoByte
          ldx   $FDFD                 ; SMC
          inc   GetNextDemoByte+1
@@ -117,6 +125,7 @@ DemoDispatchLo
          !byte <DemoOnUP
          !byte <DemoOnDOWN
          !byte <DemoOnWAIT
+         !byte <DemoOnNEXT
 DemoDispatchHi
          !byte >DemoOnEXIT
          !byte >DemoOnLOAD
@@ -127,6 +136,7 @@ DemoDispatchHi
          !byte >DemoOnUP
          !byte >DemoOnDOWN
          !byte >DemoOnWAIT
+         !byte >DemoOnNEXT
 
 ; opcodes
 EXIT                      = 0
@@ -138,34 +148,110 @@ RIGHT                     = 5
 UP                        = 6
 DOWN                      = 7
 WAIT                      = 8
+NEXT                      = 9
 
 demoPuzzles
-         !raw  "AOCD,LTLE,IBUH|ABLE,ITCH,LOUD",$0A
+         !raw  "AOCD,LTUE,IBLH|ABLE,ITCH,LOUD|...HIDDEN IN THIS PUZZLE",$0A
          !raw  "["
 
 sDemo
          !byte 6
          !raw  "DEMO-0"
 
-sUpDown
-         !byte 24
-         !raw  "MOVE COLUMNS UP AND DOWN"
-sColumns
+sThereAre
          !byte 20
-         !raw  "MOVE BETWEEN COLUMNS"
+         !raw  "THERE ARE 3 WORDS..."
+sShift
+         !byte 28
+         !raw  "SHIFT COLUMNS TO SPELL WORDS"
+sUseAll
+         !byte 26
+         !raw  "USE ALL LETTERS TO ADVANCE"
 
 DemoCode
+         !byte SHOW ,<sThereAre,>sThereAre
+         !byte WAIT ,20
+         !byte HIDE
          !byte LOAD ,0,0
-         !byte SHOW ,<sUpDown,>sUpDown
-         !byte WAIT ,10
+         !byte WAIT ,30
          !byte HIDE
          !byte UP
-         !byte WAIT ,5
+         !byte WAIT ,2
          !byte UP
          !byte WAIT ,5
          !byte DOWN
+         !byte WAIT ,2
+         !byte DOWN
          !byte WAIT ,5
-         !byte SHOW ,<sColumns,>sColumns
-         !byte WAIT ,10
+         !byte SHOW ,<sShift,>sShift
+         !byte WAIT ,30
          !byte HIDE
+         !byte UP
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte UP
+         ; A C
+         ; --v-
+         ; LOUD
+         ; ----
+         ; ITLE
+         ;  B H
+         !byte WAIT ,30
+         !byte SHOW ,<sUseAll,>sUseAll
+         !byte WAIT ,30
+         !byte HIDE
+         !byte LEFT
+         !byte WAIT ,2
+         !byte LEFT
+         !byte WAIT ,2
+         !byte DOWN
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte UP
+         !byte WAIT ,2
+         !byte UP
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte UP
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte UP
+         ;  OC
+         ;  TUD
+         ; ---v
+         ; ABLE
+         ; ----
+         ; L  H
+         ; I
+         !byte WAIT ,30
+         !byte UP
+         !byte WAIT ,2
+         !byte LEFT
+         !byte DOWN
+         !byte WAIT ,2
+         !byte DOWN
+         !byte WAIT ,2
+         !byte LEFT
+         !byte WAIT ,2
+         !byte DOWN
+         !byte WAIT ,2
+         !byte LEFT
+         !byte WAIT ,2
+         !byte UP
+         !byte WAIT ,2
+         !byte UP
+         ; A  D
+         ; LO E
+         ; v---
+         ; ITCH
+         ; ----
+         ;  BU
+         ;   L
+         !byte NEXT
          !byte EXIT
