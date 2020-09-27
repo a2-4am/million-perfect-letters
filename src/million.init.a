@@ -18,8 +18,17 @@
          +BUILD_HGR_LOOKUP_TABLES HGRLO, HGRHI
          jsr   InitScrollUp
          jsr   InitScrollDown
+         jsr   BuildAcceleratorFunction
+         +ST16 @accelSrc
+         dex
+-
+@accelSrc=*+1
+         lda   $FDFD, x
+         sta   DisableAccelerator, x
+         dex
+         bpl   -
 
--        inc   FM+2
+-        inc   FM+2                  ; relocate program code to $4000
          inc   FMDEST+2
          lda   FM+2
          cmp   #>LastMover
@@ -35,6 +44,7 @@ FMDEST   sta   $4000, x
          cmp   #$40
          bcs   FM
 
+         jsr   DisableAccelerator
          jsr   GetMockingboardSlot
          ;ldx   #0                    ; [DEBUG] uncomment to disable Mockingboard support
          cpx   #0

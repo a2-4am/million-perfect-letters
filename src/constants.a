@@ -17,7 +17,8 @@
 ; 8A00..8DFF - ProDOS file buffer for PROGRESS file
 ; 8E10..8F37 - progress of puzzles in current world
 ; 8F38..8FFF - address lookup table for puzzles within following world data
-; 9000..BEFF - world data (read from disk)
+; 9000..BEB3 - world data (read from disk)
+; BEB4..BEFF - (de)acceleration function
 ;------------------------------------------------------------------------------
 
 ; soft switches
@@ -75,3 +76,5 @@ PROGRESS     = $8ED0      ; 0x0068 bytes
 PUZZLELO     = $8F38      ; 0x0064 bytes
 PUZZLEHI     = $8F9C      ; 0x0064 bytes
 WORLDDATA    = $9000      ; 0x2F00 bytes max
+DisableAccelerator = $BEB4
+EnableAccelerator  = DisableAccelerator+3
