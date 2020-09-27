@@ -67,6 +67,7 @@ ShowMessage
 ; will clear message before showing the new one, so there may be a small flicker
          jsr   HideMessage
          +PRINT_AT currentMessage, 7, 0
+SetShowingMessage
          lda   #1
          sta   showingMessage
          rts
