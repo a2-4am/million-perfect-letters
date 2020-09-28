@@ -42,6 +42,7 @@ aboutStringsLo
          !byte <sAboutMusic
          !byte <sAboutElectricDuet
          !byte <sAboutMockingDuet
+         !byte <sAboutInspired
          !byte 0
 aboutStringsHi
          !byte >sAboutWritten
@@ -50,6 +51,7 @@ aboutStringsHi
          !byte >sAboutMusic
          !byte >sAboutElectricDuet
          !byte >sAboutMockingDuet
+         !byte >sAboutInspired
          !byte 0
 
 aboutVTABs
@@ -59,6 +61,7 @@ aboutVTABs
          !byte 9
          !byte 14
          !byte 19
+         !byte 11
 aboutHTABs
          !byte 5
          !byte 16
@@ -66,9 +69,10 @@ aboutHTABs
          !byte 17
          !byte 9
          !byte 1
+         !byte 9
 sAboutWritten
-         !byte 14
-         !raw "WRITTEN BY 4AM"
+         !byte 21
+         !raw "COPYRIGHT 2020 BY 4AM"
 sAboutTested
          !byte 21
          !raw "PLAYTESTED BY OPTION8"
@@ -84,3 +88,6 @@ sAboutElectricDuet
 sAboutMockingDuet
          !byte 35
          !raw "MOCKINGBOARD ROUTINES BY CYBERNESTO"
+sAboutInspired
+         !byte 21
+         !raw "INSPIRED BY TYPESHIFT"
