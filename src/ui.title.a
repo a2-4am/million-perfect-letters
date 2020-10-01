@@ -8,6 +8,7 @@
 ; - TitlePage
 ;
 
+initialtitlechar = $FC
 titlechar = $FD
 
 ;------------------------------------------------------------------------------
@@ -22,7 +23,16 @@ TitlePage
          jsr   Home
          lda   #$01
          sta   GlobalLeftMargin
-         lda   #$41                  ; 'A'
+         jsr   GetTime               ; clock users can have a little randomness, as a treat
+         lda   $BF90
+         eor   $BF91
+         eor   $BF92
+         eor   $BF93
+         and   #31
+         lsr
+         clc
+         adc   #$41
+         sta   initialtitlechar
 
 @outerloop
          sta   titlechar
@@ -108,7 +118,8 @@ TitlePage
 
          lda   titlechar
          beq   @phase2
-         lda   #$C1                  ; 'A' with high bit
+         lda   initialtitlechar
+         ora   #$80
          bit   titlechar
          +LBPL @outerloop
          lda   #$00

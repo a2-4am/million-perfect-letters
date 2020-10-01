@@ -21,6 +21,7 @@ DEVNUM =       $BF30                 ; last accessed device
 
 ; MLI parameter counts + command codes (these are not memory addresses)
 CMD_QUIT = $0465                     ; quit to ProDOS
+CMD_GETTIME = $0082                  ; get current time
 CMD_CREATE =   $07C0                 ; create new file
 CMD_DESTROY =  $01C1                 ; delete a file
 CMD_GETFILEINFO = $0AC4              ; get file (or volume) info
@@ -306,6 +307,10 @@ CloseFile
          sta   mliparam+1            ; file reference number
          +LDADDR CMD_CLOSE
          bne   mli                   ; always branches
+
+GetTime
+         +LDADDR CMD_GETTIME
+         beq   mli                   ; always branches
 
 ;------------------------------------------------------------------------------
 ; Quit
