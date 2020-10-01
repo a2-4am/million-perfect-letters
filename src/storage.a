@@ -48,29 +48,28 @@ bitcount = $FD
 MaybeLoadWorldFromDisk
          clc
          adc   #$41
-         cmp   @fileLoaded
+         cmp   WorldFileLoaded
          bne   +
-         clc
+@success clc
          rts
-+        sta   @filename+1
++        sta   WorldFileLoaded
          jsr   LoadFile1Shot
          !word @filename             ; address of filename
          !word WORLDDATA             ; load address
          !word $2F00                 ; maximum length
          !word WORLDFILEBUFFER       ; address of ProDOS file buffer
-         bcs   @exit
+         bcs   @failure
          jsr   PreParseWorldData
          cpx   #100
-         bne   +
-         clc
-         +HIDE_NEXT_BYTE
-+        sec
-@exit    rts
-@fileLoaded
-         !byte $FF                   ; no file
+         beq   @success
+@failure lda   #$FF
+         sta   WorldFileLoaded
+         sec
+         rts
 @filename
          !byte 1                     ; length
-         !raw  $FD                   ; SMC
+WorldFileLoaded
+         !byte $FF                   ; no file
 
 PreParseWorldData
 ; find the starting address of each of the 100 puzzles in this world

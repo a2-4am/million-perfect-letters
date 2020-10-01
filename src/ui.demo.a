@@ -73,7 +73,7 @@ DemoOnEXIT
          pla
          pla
          lda   #$FF
-         sta   gWorldID              ; invalidate cache
+         sta   WorldFileLoaded       ; invalidate cache
          rts
 
 DemoOnLOAD
