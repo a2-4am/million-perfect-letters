@@ -37,25 +37,3 @@ DrawHelpText
          +PRINT_AT sHelpQuit, 19, 0
          bit   GFXMODE
          rts
-
-sHelpHeader1
-         !byte 26
-         !raw  "MOVE COLUMNS TO FORM WORDS"
-sHelpHeader2
-         !byte 26
-         !raw  "USE ALL LETTERS TO ADVANCE"
-sHelpLeftRight
-         !byte 40
-         !raw  "LEFT/RIGHT ARROWS..........SELECT COLUMN"
-sHelpUpDown
-         !byte 40
-         !raw  "UP/DOWN ARROWS...............MOVE COLUMN"
-sHelpLetters
-         !byte 40
-         !raw  "A-Z.......................MOVE TO LETTER"
-sHelpRestart
-         !byte 40
-         !raw  "CTRL-R....................RESTART PUZZLE"
-sHelpQuit
-         !byte 40
-         !raw  "ESC............................MAIN MENU"

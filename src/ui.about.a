@@ -7,34 +7,6 @@
 ; - AboutPage
 ;
 
-;------------------------------------------------------------------------------
-; AboutPage
-; display animated credits page
-;
-; in:    none
-; out:   all registers & flags clobbered
-;------------------------------------------------------------------------------
-AboutPage
-         jsr   Home
-@outerloop
-         lda   #0
-         sta   @loop+1
-@loop    ldx   #$FD                  ; SMC
-         lda   aboutVTABs, x
-         sta   targetVTAB
-         lda   aboutHTABs, x
-         sta   minHTAB
-         lda   aboutStringsHi, x
-         beq   @outerloop
-         tay
-         lda   aboutStringsLo, x
-         jsr   HeavySilkReveal
-         inc   @loop+1
-         ldx   #11
-         jsr   LongWaitForKeyWithTimeout
-         bpl   @loop
-@exit    rts
-
 aboutStringsLo
          !byte <sAboutWritten
          !byte <sAboutTested
@@ -70,24 +42,31 @@ aboutHTABs
          !byte 9
          !byte 1
          !byte 9
-sAboutWritten
-         !byte 21
-         !raw "COPYRIGHT 2020 BY 4AM"
-sAboutTested
-         !byte 21
-         !raw "PLAYTESTED BY OPTION8"
-sAboutTested2
-         !byte 10
-         !raw "AND BESLEY"
-sAboutMusic
-         !byte 22
-         !raw "MUSIC BY GABRIEL FAURE"
-sAboutElectricDuet
-         !byte 28
-         !raw "SOUND ROUTINES BY PAUL LUTUS"
-sAboutMockingDuet
-         !byte 35
-         !raw "MOCKINGBOARD ROUTINES BY CYBERNESTO"
-sAboutInspired
-         !byte 21
-         !raw "INSPIRED BY TYPESHIFT"
+
+;------------------------------------------------------------------------------
+; AboutPage
+; display animated credits page
+;
+; in:    none
+; out:   all registers & flags clobbered
+;------------------------------------------------------------------------------
+AboutPage
+         jsr   Home
+@outerloop
+         lda   #0
+         sta   @loop+1
+@loop    ldx   #$FD                  ; SMC
+         lda   aboutVTABs, x
+         sta   targetVTAB
+         lda   aboutHTABs, x
+         sta   minHTAB
+         lda   aboutStringsHi, x
+         beq   @outerloop
+         tay
+         lda   aboutStringsLo, x
+         jsr   HeavySilkReveal
+         inc   @loop+1
+         ldx   #11
+         jsr   LongWaitForKeyWithTimeout
+         bpl   @loop
+@exit    rts

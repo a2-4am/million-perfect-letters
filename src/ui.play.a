@@ -23,12 +23,12 @@ gSelectedLogicalColumn
 gLastKeyPressed
          !byte 0
 
-kWorldLeftMargins
+kWorldLeftMargins                    ; 12 bytes, one for each world
          !byte 15,13,12,10
          !byte 15,13,12,10
          !byte 15,13,12,10
 
-kWorldRightMargins
+kWorldRightMargins                   ; 12 bytes, one for each world
          !byte 27,28,30,31
          !byte 27,28,30,31
          !byte 27,28,30,31
@@ -328,7 +328,7 @@ DrawPuzzleChrome
          sta   HTAB
          +LD16 $FE
          jsr   DrawHeavySilkString
-         +LDADDR kDash
+         +LDADDR sDash
          jsr   DrawHeavySilkString
          ldx   gPuzzleID
          inx                         ; visible puzzle number is 1-based
@@ -465,7 +465,3 @@ DrawOneSelectionIndicator
          dex
          bne   -
          rts
-
-sLevel
-         !byte 5
-         !raw  "LEVEL"

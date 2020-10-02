@@ -7,6 +7,175 @@
 ; - RunDemo
 ;
 
+DemoDispatchLo
+         !byte <DemoOnEXIT
+         !byte <DemoOnLOAD
+         !byte <DemoOnSHOW
+         !byte <DemoOnHIDE
+         !byte <DemoOnLEFT
+         !byte <DemoOnRIGHT
+         !byte <DemoOnUP
+         !byte <DemoOnDOWN
+         !byte <DemoOnWAIT
+         !byte <DemoOnNEXT
+         !byte <DemoOnTYPE
+DemoDispatchHi
+         !byte >DemoOnEXIT
+         !byte >DemoOnLOAD
+         !byte >DemoOnSHOW
+         !byte >DemoOnHIDE
+         !byte >DemoOnLEFT
+         !byte >DemoOnRIGHT
+         !byte >DemoOnUP
+         !byte >DemoOnDOWN
+         !byte >DemoOnWAIT
+         !byte >DemoOnNEXT
+         !byte >DemoOnTYPE
+
+; opcodes
+EXIT                      = 0
+LOAD                      = 1
+SHOW                      = 2
+HIDE                      = 3
+LEFT                      = 4
+RIGHT                     = 5
+UP                        = 6
+DOWN                      = 7
+WAIT                      = 8
+NEXT                      = 9
+TYPE                      = 10
+
+DemoCode
+         !byte WAIT ,20
+         !byte HIDE
+         !byte LOAD ,0,0
+         !byte WAIT ,30
+         !byte HIDE
+         !byte UP
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte UP
+         ; A C
+         ; --v-
+         ; LOUD
+         ; ----
+         ; ITLE
+         ;  B H
+         !byte SHOW ,<sHelpHeader1,>sHelpHeader1
+         !byte WAIT ,30
+         !byte HIDE
+         !byte LEFT
+         !byte WAIT ,2
+         !byte LEFT
+         !byte WAIT ,2
+         !byte DOWN
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte UP
+         !byte WAIT ,2
+         !byte UP
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte UP
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte UP
+         ;  OC
+         ;  TUD
+         ; ---v
+         ; ABLE
+         ; ----
+         ; L  H
+         ; I
+         !byte WAIT ,30
+         !byte UP
+         !byte WAIT ,2
+         !byte LEFT
+         !byte DOWN
+         !byte WAIT ,2
+         !byte DOWN
+         !byte WAIT ,2
+         !byte LEFT
+         !byte WAIT ,2
+         !byte DOWN
+         !byte WAIT ,2
+         !byte LEFT
+         !byte WAIT ,2
+         !byte UP
+         !byte WAIT ,2
+         !byte UP
+         ; A  D
+         ; LO E
+         ; v---
+         ; ITCH
+         ; ----
+         ;  BU
+         ;   L
+         !byte NEXT
+         !byte SHOW ,<sHelpHeader2,>sHelpHeader2
+         !byte WAIT ,30
+         !byte HIDE
+         !byte LOAD ,1,4
+         !byte WAIT ,30
+         !byte HIDE
+         !byte TYPE ,2
+         !byte WAIT ,20
+         !byte TYPE ,3
+         !byte WAIT ,20
+         !byte TYPE ,0
+         !byte WAIT ,20
+         !byte TYPE ,1
+         !byte NEXT
+         !byte LOAD ,2,1
+         !byte WAIT ,30
+         !byte HIDE
+         !byte TYPE ,2
+         !byte WAIT ,20
+         !byte TYPE ,1
+         !byte WAIT ,20
+         !byte TYPE ,0
+         !byte NEXT
+         !byte LOAD ,3,6
+         !byte WAIT ,30
+         !byte HIDE
+         !byte TYPE ,3
+         !byte WAIT ,20
+         !byte TYPE ,1
+         !byte WAIT ,20
+         !byte TYPE ,2
+         !byte WAIT ,20
+         !byte TYPE ,0
+         !byte NEXT
+         !byte LOAD ,4,11
+         !byte WAIT ,30
+         !byte HIDE
+         !byte TYPE ,1
+         !byte WAIT ,20
+         !byte TYPE ,3
+         !byte WAIT ,20
+         !byte TYPE ,0
+         !byte WAIT ,20
+         !byte TYPE ,4
+         !byte WAIT ,20
+         !byte TYPE ,2
+         !byte NEXT
+         !byte LOAD ,5,3
+         !byte WAIT ,30
+         !byte HIDE
+         !byte TYPE ,0
+         !byte WAIT ,20
+         !byte TYPE ,1
+         !byte WAIT ,20
+         !byte TYPE ,2
+         !byte NEXT
+         !byte EXIT
+
 ;------------------------------------------------------------------------------
 ; RunDemo
 ; run self-running demo until keypress or completion
@@ -143,189 +312,3 @@ GetNextDemoByte
          bne   +
          inc   GetNextDemoByte+2
 +        rts
-
-DemoDispatchLo
-         !byte <DemoOnEXIT
-         !byte <DemoOnLOAD
-         !byte <DemoOnSHOW
-         !byte <DemoOnHIDE
-         !byte <DemoOnLEFT
-         !byte <DemoOnRIGHT
-         !byte <DemoOnUP
-         !byte <DemoOnDOWN
-         !byte <DemoOnWAIT
-         !byte <DemoOnNEXT
-         !byte <DemoOnTYPE
-DemoDispatchHi
-         !byte >DemoOnEXIT
-         !byte >DemoOnLOAD
-         !byte >DemoOnSHOW
-         !byte >DemoOnHIDE
-         !byte >DemoOnLEFT
-         !byte >DemoOnRIGHT
-         !byte >DemoOnUP
-         !byte >DemoOnDOWN
-         !byte >DemoOnWAIT
-         !byte >DemoOnNEXT
-         !byte >DemoOnTYPE
-
-; opcodes
-EXIT                      = 0
-LOAD                      = 1
-SHOW                      = 2
-HIDE                      = 3
-LEFT                      = 4
-RIGHT                     = 5
-UP                        = 6
-DOWN                      = 7
-WAIT                      = 8
-NEXT                      = 9
-TYPE                      = 10
-
-demoPuzzles
-         !raw  "AOCD,LTUE,IBLH|ABLE,ITCH,LOUD|...HIDDEN IN THIS PUZZLE",$0A
-         !raw  "WEFP,TLTO,DAOY,FICS|DEFY,FLOP,TACO,WITS,FITS|YOU CAN ALSO TYPE LETTERS",$0A
-         !raw  "AYCWT,CRMIL,GDOLE|ADMIT,CYCLE,GROWL|PLAY 12 DIFFERENT SIZES",$0A
-         !raw  "EAIIEO,VOJXCS,BIOAOR,HLBDIK|BABIES,ELIXIR,HIJACK,VOODOO,HOODOO|UNCOMMON LETTERS CAN LIGHT THE WAY",$0A
-         !raw  "SALATST,RHHRUCD,TXRNDRS,LEU AEE,E O   Y|EXHAUST,LAUNDRY,RELATES,SHORTED,TERRACE,RELATED,TAUNTED,TERNARY|LETTERS CAN BE REUSED",$0A
-         !raw  "PELTEOT,LIRFICS,M TL RN|MILLION,PERFECT,LETTERS|I HOPE YOU ENJOY",$0A
-         !raw  "["
-
-sDemo
-         !byte 6
-         !raw  "DEMO-0"
-
-sDemoIntro
-         !byte 20
-         !raw  "THERE ARE 3 WORDS..."
-
-DemoCode
-         !byte WAIT ,20
-         !byte HIDE
-         !byte LOAD ,0,0
-         !byte WAIT ,30
-         !byte HIDE
-         !byte UP
-         !byte WAIT ,2
-         !byte RIGHT
-         !byte WAIT ,2
-         !byte RIGHT
-         !byte WAIT ,2
-         !byte UP
-         ; A C
-         ; --v-
-         ; LOUD
-         ; ----
-         ; ITLE
-         ;  B H
-         !byte SHOW ,<sHelpHeader1,>sHelpHeader1
-         !byte WAIT ,30
-         !byte HIDE
-         !byte LEFT
-         !byte WAIT ,2
-         !byte LEFT
-         !byte WAIT ,2
-         !byte DOWN
-         !byte WAIT ,2
-         !byte RIGHT
-         !byte WAIT ,2
-         !byte UP
-         !byte WAIT ,2
-         !byte UP
-         !byte WAIT ,2
-         !byte RIGHT
-         !byte WAIT ,2
-         !byte UP
-         !byte WAIT ,2
-         !byte RIGHT
-         !byte WAIT ,2
-         !byte UP
-         ;  OC
-         ;  TUD
-         ; ---v
-         ; ABLE
-         ; ----
-         ; L  H
-         ; I
-         !byte WAIT ,30
-         !byte UP
-         !byte WAIT ,2
-         !byte LEFT
-         !byte DOWN
-         !byte WAIT ,2
-         !byte DOWN
-         !byte WAIT ,2
-         !byte LEFT
-         !byte WAIT ,2
-         !byte DOWN
-         !byte WAIT ,2
-         !byte LEFT
-         !byte WAIT ,2
-         !byte UP
-         !byte WAIT ,2
-         !byte UP
-         ; A  D
-         ; LO E
-         ; v---
-         ; ITCH
-         ; ----
-         ;  BU
-         ;   L
-         !byte NEXT
-         !byte SHOW ,<sHelpHeader2,>sHelpHeader2
-         !byte WAIT ,30
-         !byte HIDE
-         !byte LOAD ,1,4
-         !byte WAIT ,30
-         !byte HIDE
-         !byte TYPE ,2
-         !byte WAIT ,20
-         !byte TYPE ,3
-         !byte WAIT ,20
-         !byte TYPE ,0
-         !byte WAIT ,20
-         !byte TYPE ,1
-         !byte NEXT
-         !byte LOAD ,2,1
-         !byte WAIT ,30
-         !byte HIDE
-         !byte TYPE ,2
-         !byte WAIT ,20
-         !byte TYPE ,1
-         !byte WAIT ,20
-         !byte TYPE ,0
-         !byte NEXT
-         !byte LOAD ,3,6
-         !byte WAIT ,30
-         !byte HIDE
-         !byte TYPE ,3
-         !byte WAIT ,20
-         !byte TYPE ,1
-         !byte WAIT ,20
-         !byte TYPE ,2
-         !byte WAIT ,20
-         !byte TYPE ,0
-         !byte NEXT
-         !byte LOAD ,4,11
-         !byte WAIT ,30
-         !byte HIDE
-         !byte TYPE ,1
-         !byte WAIT ,20
-         !byte TYPE ,3
-         !byte WAIT ,20
-         !byte TYPE ,0
-         !byte WAIT ,20
-         !byte TYPE ,4
-         !byte WAIT ,20
-         !byte TYPE ,2
-         !byte NEXT
-         !byte LOAD ,5,3
-         !byte WAIT ,30
-         !byte HIDE
-         !byte TYPE ,0
-         !byte WAIT ,20
-         !byte TYPE ,1
-         !byte WAIT ,20
-         !byte TYPE ,2
-         !byte NEXT
-         !byte EXIT

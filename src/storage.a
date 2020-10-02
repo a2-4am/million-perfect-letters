@@ -5,11 +5,12 @@
 ;
 ; Public functions:
 ; - MaybeLoadWorldFromDisk
+; - PreParseWorldData
 ; - LoadProgressFromDisk
 ; - LoadProgressFromMemory
 ; - LoadPuzzleFromMemory
 ; - MarkPuzzleCompleted
-; - FindPackedProgressAddr
+; - FindPackedProgress
 ;
 ; Public variables:
 ; - gWorldID
@@ -71,9 +72,17 @@ MaybeLoadWorldFromDisk
 WorldFileLoaded
          !byte $FF                   ; no file
 
-PreParseWorldData
-; find the starting address of each of the 100 puzzles in this world
+;------------------------------------------------------------------------------
+; PreParseWorldData
+; build internal list of pointers to the start of each puzzle within a world,
+; after the raw world data has been loaded into memory
+;
 ; in:    $9000+ contains raw world data from disk
+; out:   X = number of puzzles found
+;        other registers & flags clobbered
+;        $FE/$FF clobbered
+;------------------------------------------------------------------------------
+PreParseWorldData
          lda   #$FF
          sta   $FE
          lda   #$8F
@@ -110,6 +119,7 @@ PreParseWorldData
 
 ;------------------------------------------------------------------------------
 ; LoadProgressFromDisk
+; load PROGRESS file into memory
 ;
 ; see comments in MarkPuzzleCompleted for file format
 ;
@@ -146,7 +156,7 @@ LoadProgressFromDisk
 ;------------------------------------------------------------------------------
 LoadProgressFromMemory
          lda   gWorldID
-         jsr   FindPackedProgressAddr
+         jsr   FindPackedProgress
                                      ; ($FE) -> start of the 16-byte structure for this world
          ; zero destination array
          ldx   #103
@@ -311,7 +321,7 @@ MarkPuzzleCompleted
 ; start at the beginning. So that's nice.
 ;
          lda   gWorldID
-         jsr   FindPackedProgressAddr
+         jsr   FindPackedProgress
                                      ; ($FE) -> start of the 16-byte structure for this world
          ; zero out all 16 bytes
          ldy   #$0F
@@ -373,12 +383,17 @@ MarkPuzzleCompleted
          pla
          rts
 
-FindPackedProgressAddr
+;------------------------------------------------------------------------------
+; FindPackedProgress
+; find address of a world's packed progress data
+;
 ; in:    A = world ID
 ; out:   ($FE) points to first byte of this world's packed progress (16-byte structure)
 ;        A/Y clobbered
 ;        X preserved
 ;        all flags clobbered
+;------------------------------------------------------------------------------
+FindPackedProgress
          pha
          +LDADDR PACKEDPROGRESS
          +ST16 $FE

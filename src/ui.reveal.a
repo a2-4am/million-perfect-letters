@@ -37,7 +37,7 @@ HeavySilkReveal
          clc
          adc   minHTAB
          sta   maxHTAB
-@revealStartingChar=*+1
+RevealStartingChar=*+1
          lda   #$41                  ; 'A'
 @outerloop
          sta   randomchar
@@ -102,7 +102,7 @@ HeavySilkReveal
          lda   randomchar
          cmp   #$20
          beq   @exit
-         sta   @revealStartingChar
+         sta   RevealStartingChar
          lda   #$20
          bne   @outerloop            ; always branches
 @exit    rts

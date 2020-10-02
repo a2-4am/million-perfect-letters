@@ -1,0 +1,179 @@
+;license:MIT
+;(c) 2020 by 4am
+;
+
+sTitleLine1
+         !byte 7
+         !raw "MILLION"
+sTitleLine2
+         !byte 7
+         !raw "PERFECT"
+sTitleLine3
+         !byte 7
+         !raw "LETTERS"
+sVersion
+         !byte 4
+         !raw  "V0.5"
+sOneSpace
+         !byte 1
+         !raw  " "
+sAsterisk
+         !byte 1
+         !raw  "*"
+sDash
+         !byte 1
+         !raw  "-"
+sMainMenuPlay
+         !byte 20
+         !raw  "RETURN.....PLAY GAME"
+sMainMenuSound
+         !byte 18
+         !raw  "     S.....SOUND ("
+sMainMenuSoundOn
+         !byte 4
+         !raw  "ON) "
+sMainMenuSoundOff
+         !byte 4
+         !raw  "OFF)"
+sMainMenuAbout
+         !byte 18
+         !raw  "     C.....CREDITS"
+sMainMenuDemo
+         !byte 15
+         !raw  "     D.....DEMO"
+sMainMenuQuit
+         !byte 15
+         !raw  "     Q.....QUIT"
+sMainMenuDisclaimer
+         !byte 40
+         !raw  "* NOT GUARANTEED, ACTUAL COUNT MAY VARY."
+kWorldDescriptions ; each 20 characters, no length prefix
+         !raw " 4X3  EASY       0% "
+         !raw " 5X3  BASIC      0% "
+         !raw " 6X3  SIMPLE     0% "
+         !raw " 7X3  RELAXED    0% "
+         !raw " 4X4  FAIR       0% "
+         !raw " 5X4  QUICK      0% "
+         !raw " 6X4  MEDIUM     0% "
+         !raw " 7X4  AVERAGE    0% "
+         !raw " 4X5  HARD       0% "
+         !raw " 5X5  TOUGH      0% "
+         !raw " 6X5  TRICKY     0% "
+         !raw " 7X5  COMPLEX    0% "
+kWorldShortNames ; each 4 characters including length prefix
+         !byte 3
+         !raw "4X3"
+         !byte 3
+         !raw "5X3"
+         !byte 3
+         !raw "6X3"
+         !byte 3
+         !raw "7X3"
+         !byte 3
+         !raw "4X4"
+         !byte 3
+         !raw "5X4"
+         !byte 3
+         !raw "6X4"
+         !byte 3
+         !raw "7X4"
+         !byte 3
+         !raw "4X5"
+         !byte 3
+         !raw "5X5"
+         !byte 3
+         !raw "6X5"
+         !byte 3
+         !raw "7X5"
+sWorldHelp
+         !byte 40
+         !raw "ARROWS TO SELECT, RETURN TO PLAY, OR ESC"
+sAboutWritten
+         !byte 21
+         !raw "COPYRIGHT 2020 BY 4AM"
+sAboutTested
+         !byte 21
+         !raw "PLAYTESTED BY OPTION8"
+sAboutTested2
+         !byte 10
+         !raw "AND BESLEY"
+sAboutMusic
+         !byte 22
+         !raw "MUSIC BY GABRIEL FAURE"
+sAboutElectricDuet
+         !byte 28
+         !raw "SOUND ROUTINES BY PAUL LUTUS"
+sAboutMockingDuet
+         !byte 35
+         !raw "MOCKINGBOARD ROUTINES BY CYBERNESTO"
+sAboutInspired
+         !byte 21
+         !raw "INSPIRED BY TYPESHIFT"
+demoPuzzles ; same format as world files on disk
+         !raw  "AOCD,LTUE,IBLH|ABLE,ITCH,LOUD|...HIDDEN IN THIS PUZZLE",$0A
+         !raw  "WEFP,TLTO,DAOY,FICS|DEFY,FLOP,TACO,WITS,FITS|YOU CAN ALSO TYPE LETTERS",$0A
+         !raw  "AYCWT,CRMIL,GDOLE|ADMIT,CYCLE,GROWL|PLAY 12 DIFFERENT SIZES",$0A
+         !raw  "EAIIEO,VOJXCS,BIOAOR,HLBDIK|BABIES,ELIXIR,HIJACK,VOODOO,HOODOO|UNCOMMON LETTERS CAN LIGHT THE WAY",$0A
+         !raw  "SALATST,RHHRUCD,TXRNDRS,LEU AEE,E O   Y|EXHAUST,LAUNDRY,RELATES,SHORTED,TERRACE,RELATED,TAUNTED,TERNARY|LETTERS CAN BE REUSED",$0A
+         !raw  "PELTEOT,LIRFICS,M TL RN|MILLION,PERFECT,LETTERS|I HOPE YOU ENJOY",$0A
+         !raw  "["
+sDemo
+         !byte 6
+         !raw  "DEMO-0"
+sDemoIntro
+         !byte 20
+         !raw  "THERE ARE 3 WORDS..."
+sLevel
+         !byte 5
+         !raw  "LEVEL"
+sHelpHeader1
+         !byte 26
+         !raw  "MOVE COLUMNS TO FORM WORDS"
+sHelpHeader2
+         !byte 26
+         !raw  "USE ALL LETTERS TO ADVANCE"
+sHelpLeftRight
+         !byte 40
+         !raw  "LEFT/RIGHT ARROWS..........SELECT COLUMN"
+sHelpUpDown
+         !byte 40
+         !raw  "UP/DOWN ARROWS...............MOVE COLUMN"
+sHelpLetters
+         !byte 40
+         !raw  "A-Z.......................MOVE TO LETTER"
+sHelpRestart
+         !byte 40
+         !raw  "CTRL-R....................RESTART PUZZLE"
+sHelpQuit
+         !byte 40
+         !raw  "ESC............................MAIN MENU"
+sProgress10
+         !byte 25
+         !raw "10% COMPLETE! KEEP IT UP!"
+sProgress20
+         !byte 24
+         !raw "20% COMPLETE! WAY TO GO!"
+sProgress30
+         !byte 24
+         !raw "30% COMPLETE! FANTASTIC!"
+sProgress40
+         !byte 24
+         !raw "40% COMPLETE! EXCELLENT!"
+sProgress50
+         !byte 26
+         !raw "WHOA, WE'RE HALFWAY THERE!"
+sProgress60
+         !byte 36
+         !raw "60% OF THE TIME, IT WORKS EVERY TIME"
+sProgress70
+         !byte 22
+         !raw "70% COMPLETE! AMAZING!"
+sProgress80
+         !byte 25
+         !raw "80% COMPLETE! PHENOMENAL!"
+sProgress90
+         !byte 28
+         !raw "90% COMPLETE! INCONCEIVABLE!"
+sProgress100
+         !byte 31
+         !raw "100% COMPLETE! CONGRATULATIONS!"

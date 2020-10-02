@@ -76,6 +76,7 @@ Start                                ; X = Mockingboard slot (from init)
          sec                         ; C=1 triggers full redraw
          bcs   @GoToMainMenu
 
+         !source "src/ui.strings.a"
          !source "src/ui.title.a"
          !source "src/ui.main.menu.a"
          !source "src/ui.select.world.a"
@@ -96,8 +97,6 @@ Start                                ; X = Mockingboard slot (from init)
          !source "src/ui.font.courier.double.prime.data.a"
          !source "src/ui.font.heavy.silk.a"
          !source "src/ui.font.heavy.silk.data.a"
-         !source "src/electric.duet.a"
-         !source "src/mockingduet.a"
 MainMenuMusic
          !bin    "res/M.SICILIENNE"
 InterstitialProgressMusic
@@ -108,5 +107,7 @@ M_I      !bin    "res/M.I"
 M_I_LONG !bin    "res/M.I.LONG"
 M_vi6    !bin    "res/M.VI6"
 M_ERROR  !bin    "res/M.ERROR"
+         !source "src/electric.duet.a"
+         !source "src/mockingduet.a"
 }
 LastMover

@@ -22,7 +22,7 @@ selectedworld = $F3
 SelectWorld
          jsr   Home
          jsr   UpdateWorldPercents
-         +LDADDR worlddescriptions
+         +LDADDR kWorldDescriptions
          +ST16 $FE
          lda   #0
          sta   counter
@@ -49,10 +49,10 @@ SelectWorld
          inc   $FF
 +        inc   counter
          lda   counter
-         cmp   #12                   ; ignore world 13 (that's for self-running demo)
+         cmp   #12
          bcc   -
 
-         +PRINT_AT worldhelp, 23, 0
+         +PRINT_AT sWorldHelp, 23, 0
 
          bit   CLEARKBD
 @selectWorldLoop
@@ -132,7 +132,7 @@ DrawNewlySelectedWorld
 GetWorldDescription
 ; in:    X = 0-based world ID
 ; out:   $FE/$FF points to world description buffer
-         +LDADDR worlddescriptions
+         +LDADDR kWorldDescriptions
          +ST16 $FE
          jmp   +
 -        lda   $FE
@@ -147,11 +147,11 @@ GetWorldDescription
 
 worldindex=$FB
 UpdateWorldPercents
-         +LDADDR worlddescriptions
+         +LDADDR kWorldDescriptions
          +ST16 $FC
          lda   #0
          sta   worldindex
---       jsr   FindPackedProgressAddr
+--       jsr   FindPackedProgress
          ldy   #$0E
          lda   ($FE), y
          tax
@@ -175,51 +175,3 @@ UpdateWorldPercents
          cmp   #12
          bne   --
          rts
-
-worlddescriptions
-         !raw " 4X3  EASY       0% "
-         !raw " 5X3  BASIC      0% "
-         !raw " 6X3  SIMPLE     0% "
-         !raw " 7X3  RELAXED    0% "
-         !raw " 4X4  FAIR       0% "
-         !raw " 5X4  QUICK      0% "
-         !raw " 6X4  MEDIUM     0% "
-         !raw " 7X4  AVERAGE    0% "
-         !raw " 4X5  HARD       0% "
-         !raw " 5X5  TOUGH      0% "
-         !raw " 6X5  TRICKY     0% "
-         !raw " 7X5  COMPLEX    0% "
-
-kWorldShortNames
-         !byte 3
-         !raw "4X3"
-         !byte 3
-         !raw "5X3"
-         !byte 3
-         !raw "6X3"
-         !byte 3
-         !raw "7X3"
-         !byte 3
-         !raw "4X4"
-         !byte 3
-         !raw "5X4"
-         !byte 3
-         !raw "6X4"
-         !byte 3
-         !raw "7X4"
-         !byte 3
-         !raw "4X5"
-         !byte 3
-         !raw "5X5"
-         !byte 3
-         !raw "6X5"
-         !byte 3
-         !raw "7X5"
-
-kDash
-         !byte 1
-         !raw "-"
-
-worldhelp
-         !byte 40
-         !raw "ARROWS TO SELECT, RETURN TO PLAY, OR ESC"

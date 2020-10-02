@@ -32,6 +32,7 @@ TitlePage
          lsr
          clc
          adc   #$41
+         sta   RevealStartingChar
          sta   initialtitlechar
 
 @outerloop
@@ -141,13 +142,3 @@ TitlePage
          cpy   #$0A
          bne   --
          beq   @exit                 ; always branches
-
-sTitleLine1
-         !byte 7
-         !raw "MILLION"
-sTitleLine2
-         !byte 7
-         !raw "PERFECT"
-sTitleLine3
-         !byte 7
-         !raw "LETTERS"

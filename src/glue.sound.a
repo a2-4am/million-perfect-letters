@@ -49,8 +49,6 @@ k16251Progression
          !word M_vi6
          !word M_ii
          !word M_V
-kFinalChord
-         !word M_I_LONG
 
 ;------------------------------------------------------------------------------
 ; ReinitSoundAfterPrefChange
@@ -193,7 +191,7 @@ PlayNextChord
 PlayFinalChord
          txa
          pha
-         +LD16 kFinalChord
+         +LDADDR M_I_LONG
          jsr   PlaySoundToCompletion
          pla
          tax
