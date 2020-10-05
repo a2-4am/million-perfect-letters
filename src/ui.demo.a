@@ -51,13 +51,13 @@ DemoCode
          !byte LOAD ,0,0
          !byte WAIT ,30
          !byte HIDE
-         !byte UP
+         !byte DOWN
          !byte WAIT ,2
          !byte RIGHT
          !byte WAIT ,2
          !byte RIGHT
          !byte WAIT ,2
-         !byte UP
+         !byte DOWN
          ; A C
          ; --v-
          ; LOUD
@@ -71,21 +71,21 @@ DemoCode
          !byte WAIT ,2
          !byte LEFT
          !byte WAIT ,2
+         !byte UP
+         !byte WAIT ,2
+         !byte RIGHT
+         !byte WAIT ,2
+         !byte DOWN
+         !byte WAIT ,2
          !byte DOWN
          !byte WAIT ,2
          !byte RIGHT
          !byte WAIT ,2
-         !byte UP
-         !byte WAIT ,2
-         !byte UP
+         !byte DOWN
          !byte WAIT ,2
          !byte RIGHT
          !byte WAIT ,2
-         !byte UP
-         !byte WAIT ,2
-         !byte RIGHT
-         !byte WAIT ,2
-         !byte UP
+         !byte DOWN
          ;  OC
          ;  TUD
          ; ---v
@@ -94,22 +94,22 @@ DemoCode
          ; L  H
          ; I
          !byte WAIT ,30
+         !byte DOWN
+         !byte WAIT ,2
+         !byte LEFT
          !byte UP
          !byte WAIT ,2
-         !byte LEFT
-         !byte DOWN
-         !byte WAIT ,2
-         !byte DOWN
-         !byte WAIT ,2
-         !byte LEFT
-         !byte WAIT ,2
-         !byte DOWN
+         !byte UP
          !byte WAIT ,2
          !byte LEFT
          !byte WAIT ,2
          !byte UP
          !byte WAIT ,2
-         !byte UP
+         !byte LEFT
+         !byte WAIT ,2
+         !byte DOWN
+         !byte WAIT ,2
+         !byte DOWN
          ; A  D
          ; LO E
          ; v---

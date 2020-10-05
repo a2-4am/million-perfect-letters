@@ -133,14 +133,14 @@ PlayEventReturn
 +        ldx   #kKeepPlaying
          rts
 
-PlayEventUpArrow
+PlayEventDownArrow
          ldy   gSelectedLogicalColumn
          jsr   ScrollPuzzleUp
          bcs   CantMove
          jsr   ScrollUp
          jmp   CheckAfterArrow
 
-PlayEventDownArrow
+PlayEventUpArrow
          ldy   gSelectedLogicalColumn
          jsr   ScrollPuzzleDown
          bcc   +
