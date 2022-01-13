@@ -35,9 +35,10 @@ puzzle_data6          = $033A        ; [0x08 bytes]
 puzzle_data7          = $0342        ; [0x08 bytes]
 puzzle_data8          = $034A        ; [0x08 bytes]
 target_word_count     = $0352        ; [0x01 byte ] number of records in <target_words>
-target_words          = $0353        ; [0x80 bytes]
+target_words          = $7900        ; [0x100 bytes]
                                      ; each 8-byte record is a <puzzle_logical_width>-length word, no prefix
                                      ; extra bytes in each record are guaranteed to be 0x00
+                                     ; max 32 words per puzzle
 
 ;------------------------------------------------------------------------------
 ; InitPuzzleStorage
@@ -51,10 +52,13 @@ target_words          = $0353        ; [0x80 bytes]
 ;------------------------------------------------------------------------------
 InitPuzzleStorage
          sta   puzzle_logical_width
-         ldx   #$CF
+         ldx   #$52
          lda   #0
 -        sta   puzzle_logical_width, x
          dex
+         bne   -
+-        sta   target_words, x
+         inx
          bne   -
          rts
 

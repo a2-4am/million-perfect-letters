@@ -57,7 +57,7 @@ MaybeLoadWorldFromDisk
          jsr   LoadFile1Shot
          !word @filename             ; address of filename
          !word WORLDDATA             ; load address
-         !word $2F00                 ; maximum length
+         !word $3F00                 ; maximum length
          !word WORLDFILEBUFFER       ; address of ProDOS file buffer
          bcs   @failure
          jsr   PreParseWorldData
@@ -77,16 +77,16 @@ WorldFileLoaded
 ; build internal list of pointers to the start of each puzzle within a world,
 ; after the raw world data has been loaded into memory
 ;
-; in:    $9000+ contains raw world data from disk
+; in:    WORLDDATA contains raw world data from disk
 ; out:   X = number of puzzles found
 ;        other registers & flags clobbered
 ;        $FE/$FF clobbered
 ;------------------------------------------------------------------------------
 PreParseWorldData
-         lda   #$FF
+         lda   #<(WORLDDATA-1)
          sta   $FE
-         lda   #$8F
-         sta   $FF                   ; ($FE) -> $8FFF, one byte before start of file data
+         lda   #>(WORLDDATA-1)
+         sta   $FF                   ; ($FE) -> one byte before start of file data
          ldy   #$00
 @newLine ldx   #$00                  ; X = puzzle ID
          beq   @emptyline            ; always branches
