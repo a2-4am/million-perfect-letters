@@ -109,11 +109,7 @@ MainMenuEventC
          rts
 
 MainMenuEventS
-         lda   gSoundPref
-         eor   #$01
-         sta   gSoundPref
-         jsr   SavePrefs
-         jsr   ReinitSoundAfterPrefChange
+         jsr   ToggleSoundPref
          ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
          clc                         ; C=0 so caller will only do a partial screen refresh
          rts

@@ -147,6 +147,9 @@ sHelpRestart
 sHelpSkip
          !byte 40
          !raw  "CTRL-N.......................NEXT PUZZLE"
+sHelpSound
+         !byte 40
+         !raw  "CTRL-S......................TOGGLE SOUND"
 sHelpQuit
          !byte 40
          !raw  "ESC............................MAIN MENU"

@@ -27,14 +27,15 @@ HelpEventLoop
 DrawHelpText
 ; [private]
          bit   TEXTMODE
-         +PRINT_AT sHelpHeader1, 2, 7
-         +PRINT_AT sHelpHeader2, 4, 7
-         +PRINT_AT sAsterisk, 7, 20
-         +PRINT_AT sHelpLeftRight, 10, 0
-         +PRINT_AT sHelpUpDown, 12, 0
-         +PRINT_AT sHelpLetters, 14, 0
-         +PRINT_AT sHelpRestart, 16, 0
-         +PRINT_AT sHelpSkip, 18, 0
-         +PRINT_AT sHelpQuit, 20, 0
+         +PRINT_AT sHelpHeader1, 1, 7
+         +PRINT_AT sHelpHeader2, 3, 7
+         +PRINT_AT sAsterisk, 6, 20
+         +PRINT_AT sHelpLeftRight, 9, 0
+         +PRINT_AT sHelpUpDown, 11, 0
+         +PRINT_AT sHelpLetters, 13, 0
+         +PRINT_AT sHelpRestart, 15, 0
+         +PRINT_AT sHelpSkip, 17, 0
+         +PRINT_AT sHelpSound, 19, 0
+         +PRINT_AT sHelpQuit, 21, 0
          bit   GFXMODE
          rts

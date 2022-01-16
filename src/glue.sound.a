@@ -3,6 +3,7 @@
 ;
 ; Public functions:
 ; - InitSound
+; - ToggleSoundPref
 ; - ReinitSoundAfterPrefChange
 ; - PlaySoundToCompletion
 ; - PlaySound
@@ -49,6 +50,13 @@ k16251Progression
          !word M_vi6
          !word M_ii
          !word M_V
+
+ToggleSoundPref
+         lda   gSoundPref
+         eor   #$01
+         sta   gSoundPref
+         jsr   SavePrefs
+         ; /!\ execution falls through to ReinitSoundAfterPrefChange
 
 ;------------------------------------------------------------------------------
 ; ReinitSoundAfterPrefChange
