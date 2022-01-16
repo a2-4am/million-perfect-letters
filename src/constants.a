@@ -14,11 +14,10 @@
 ; 2000..3FFF - hi-res page
 ; 4000+      - program code (relocated to here at startup)
 ; ...unused...
-; 7900..79FF - target words formatted array
-; 7A00..7DFF - ProDOS file buffer for PROGRESS file
-; 7E10..7F37 - progress of puzzles in current world
-; 7F38..7FFF - address lookup table for puzzles within following world data
-; 8000..BEB3 - world data (read from disk)
+; 8A00..8DFF - ProDOS file buffer for PROGRESS file
+; 8E10..8F37 - progress of puzzles in current world
+; 8F38..8FFF - address lookup table for puzzles within following world data
+; 9000..BEB3 - world data (read from disk)
 ; BEB4..BEFF - (de)acceleration function
 ;------------------------------------------------------------------------------
 
@@ -71,11 +70,11 @@ HGRHI        = $1B00      ; 0x00C0 bytes
 WORLDFILEBUFFER = $1C00   ; 0x0400 bytes
 PREFSFILEBUFFER = $1C00   ; 0x0400 bytes (note: same as WORLDFILEBUFFER)
 
-PROGRESSFILEBUFFER = $7A00; 0x0400 bytes
-PACKEDPROGRESS = $7E10    ; 0x00C0 bytes
-PROGRESS     = $7ED0      ; 0x0068 bytes
-PUZZLELO     = $7F38      ; 0x0064 bytes
-PUZZLEHI     = $7F9C      ; 0x0064 bytes
-WORLDDATA    = $8000      ; 0x3F00 bytes max
+PROGRESSFILEBUFFER = $8A00; 0x0400 bytes
+PACKEDPROGRESS = $8E10    ; 0x00C0 bytes
+PROGRESS     = $8ED0      ; 0x0068 bytes
+PUZZLELO     = $8F38      ; 0x0064 bytes
+PUZZLEHI     = $8F9C      ; 0x0064 bytes
+WORLDDATA    = $9000      ; 0x3F00 bytes max
 DisableAccelerator = $BEB4
 EnableAccelerator  = DisableAccelerator+3

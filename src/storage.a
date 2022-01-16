@@ -57,7 +57,7 @@ MaybeLoadWorldFromDisk
          jsr   LoadFile1Shot
          !word @filename             ; address of filename
          !word WORLDDATA             ; load address
-         !word $3F00                 ; maximum length
+         !word $2F00                 ; maximum length
          !word WORLDFILEBUFFER       ; address of ProDOS file buffer
          bcs   @failure
          jsr   PreParseWorldData
