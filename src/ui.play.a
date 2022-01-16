@@ -15,7 +15,8 @@
 kKeepPlaying = 0                     ; This code is checked with BEQ/BNE, so it must be 0
 kCompletedPuzzle = 1                 ; All non-zero codes will exit play event loop
 kRequestedRestart = 2                ;   with the code in X so caller knows what happened
-kReturnToMainMenu = 3
+kRequestedSkip = 3
+kReturnToMainMenu = 4
 
 gSelectedLogicalColumn
          !byte 0
@@ -43,6 +44,7 @@ kPlayKeys                            ; must keep in sync with kPlayKeyHandlersLo
          !byte $15                   ; right arrow
          !byte $1B                   ; Esc
          !byte $12                   ; Ctrl-R
+         !byte $0E                   ; Ctrl-N
          !byte $0D                   ; Return
          !byte $2F                   ; /
          !byte $3F                   ; ?
@@ -55,6 +57,7 @@ kPlayKeyHandlersLo
          !byte <PlayEventRightArrow
          !byte <PlayEventEsc
          !byte <PlayEventCtrlR
+         !byte <PlayEventCtrlN
          !byte <PlayEventReturn
          !byte <PlayEventQuestion
          !byte <PlayEventQuestion
@@ -67,6 +70,7 @@ kPlayKeyHandlersHi
          !byte >PlayEventRightArrow
          !byte >PlayEventEsc
          !byte >PlayEventCtrlR
+         !byte >PlayEventCtrlN
          !byte >PlayEventReturn
          !byte >PlayEventQuestion
          !byte >PlayEventQuestion
@@ -123,6 +127,10 @@ PlayEventEsc
 
 PlayEventCtrlR
          ldx   #kRequestedRestart    ; caller will exit play event loop
+         rts
+
+PlayEventCtrlN
+         ldx   #kRequestedSkip       ; caller will exit play event loop
          rts
 
 PlayEventReturn

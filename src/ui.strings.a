@@ -144,6 +144,9 @@ sHelpLetters
 sHelpRestart
          !byte 40
          !raw  "CTRL-R....................RESTART PUZZLE"
+sHelpSkip
+         !byte 40
+         !raw  "CTRL-N.......................NEXT PUZZLE"
 sHelpQuit
          !byte 40
          !raw  "ESC............................MAIN MENU"

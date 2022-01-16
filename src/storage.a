@@ -252,7 +252,7 @@ LoadPuzzleFromMemory
          !raw  "                                        "
 
 ;------------------------------------------------------------------------------
-; MarkPuzzleCompleted
+; MarkPuzzleCompleted/MarkPuzzleSkipped
 ;
 ; in:    X = puzzle ID
 ; out:   A = next puzzle ID
@@ -263,14 +263,18 @@ MarkPuzzleCompleted
          ; memory for easy access
          ; Mark this puzzle as completed in the unpacked table
          lda   #1
+         !byte $2C
+MarkPuzzleSkipped
+         lda   #0
          sta   PROGRESS, x
          ; Find the next uncompleted puzzle
          clc
+         beq   @next
          +HIDE_NEXT_BYTE
 --       sec
 -        lda   PROGRESS, x
-         beq   +
-         inx
+         beq   @done
+@next    inx
          cpx   #100
          bne   -
          ldx   #0                    ; start over at the puzzle 0
@@ -279,7 +283,7 @@ MarkPuzzleCompleted
          ; have been completed (yay!), and we'll leave X at 0.
          ; If we branch here, we found the next uncompleted puzzle
          ; and X contains that puzzle ID.
-+        txa
+@done    txa
          pha                         ; push next puzzle ID
 ;
 ; Completion status for all puzzles across all worlds is stored in packed

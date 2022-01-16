@@ -67,6 +67,12 @@ Start                                ; X = Mockingboard slot (from init)
          bcc   @Play
          bcs   @GoToMainMenu
 +
+         cpx   #kRequestedSkip
+         bne   +
+         ldx   gPuzzleID
+         jsr   MarkPuzzleSkipped
+         jmp   @Play
++
          cpx   #kRequestedRestart
          bne   +
          jsr   Home
