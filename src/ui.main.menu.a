@@ -71,21 +71,24 @@ MainMenuEventLoop
          jsr   DrawMainMenuTitle
 +        jsr   DrawMainMenuText
          bit   CLEARKBD
--
+@musicloop
          +LDADDR kMainMenuKeys
          +ST16 $EE
          +LDADDR MainMenuMusic
          jsr   PlaySound
-         bpl   -                     ; music played to completion, no keypress, so start over
+         bpl   @musicloop            ; music played to completion, no keypress, so start over
          bit   CLEARKBD
          sta   gLastKeyPressed
          ldx   #0
--        ldy   kMainMenuKeys, x
+@keyloop
+         ldy   kMainMenuKeys, x
+         beq   @musicloop
          cpy   gLastKeyPressed
-         beq   +
+         beq   @dispatch
          inx
-         bne   -
-+        lda   kMainMenuKeyHandlersLo, x
+         bne   @keyloop
+@dispatch
+         lda   kMainMenuKeyHandlersLo, x
          sta   @j+1
          lda   kMainMenuKeyHandlersHi, x
          sta   @j+2
