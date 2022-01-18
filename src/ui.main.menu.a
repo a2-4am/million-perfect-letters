@@ -19,6 +19,7 @@ kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandle
          !byte $E3                   ; c
          !byte $D3                   ; S
          !byte $F3                   ; s
+         !byte $93                   ; Ctrl-S
          !byte $C4                   ; D
          !byte $E4                   ; d
          !byte $D1                   ; Q
@@ -32,6 +33,7 @@ kMainMenuKeyHandlersLo
          !byte <MainMenuEventC
          !byte <MainMenuEventS
          !byte <MainMenuEventS
+         !byte <MainMenuEventS
          !byte <MainMenuEventD
          !byte <MainMenuEventD
          !byte <MainMenuEventQ
@@ -42,6 +44,7 @@ kMainMenuKeyHandlersHi
          !byte >MainMenuEventReturn
          !byte >MainMenuEventC
          !byte >MainMenuEventC
+         !byte >MainMenuEventS
          !byte >MainMenuEventS
          !byte >MainMenuEventS
          !byte >MainMenuEventD
