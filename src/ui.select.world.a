@@ -4,22 +4,162 @@
 ; select world screen
 ;
 ; Public functions:
-; - SelectWorld
+; - SelectWorldEventLoop
 ;
 
 counter = $F2
 selectedworld = $F3
 
+; Codes returned by event handlers
+kStayOnSelectWorld = 0
+kReturnToMainMenu = 1
+
+kSelectWorldKeys                     ; must keep in sync with kSelectWorldKeyHandlersLo/Hi arrays
+                                     ; except for last byte ($00) which doesn't need an associated handler
+         !byte $8D                   ; Return
+         !byte $8B                   ; up arrow
+         !byte $88                   ; left arrow
+         !byte $8A                   ; down arrow
+         !byte $95                   ; right arrow
+         !byte $9B                   ; Esc
+         !byte $00
+
+kSelectWorldKeyHandlersLo
+         !byte <SelectWorldEventReturn
+         !byte <SelectWorldEventUp
+         !byte <SelectWorldEventUp
+         !byte <SelectWorldEventDown
+         !byte <SelectWorldEventDown
+         !byte <SelectWorldEventEsc
+
+kSelectWorldKeyHandlersHi
+         !byte >SelectWorldEventReturn
+         !byte >SelectWorldEventUp
+         !byte >SelectWorldEventUp
+         !byte >SelectWorldEventDown
+         !byte >SelectWorldEventDown
+         !byte >SelectWorldEventEsc
+
 ;------------------------------------------------------------------------------
-; SelectWorld
+; SelectWorldEventLoop
 ; allow user to select world for playing
 ;
-; in:    none
-; out:   C clear if world was selected, and
-;          A = 0-based world ID
-;        C set if no world was selected and A is undefined
+; in:    C clear if screen is already drawn
+;          (will happen if key was dispatched and handled its own redraw)
+;        C set if full screen clear & redraw is required
+;          (will happen if key is pressed during title screen, or
+;          if user returns to main menu from any other screen)
+; out:   Z = 0
 ;------------------------------------------------------------------------------
-SelectWorld
+SelectWorldEventLoop
+         bcc   +
+         jsr   DrawSelectWorldText
++        bit   CLEARKBD
+@keyloop
+         lda   KBD
+         bpl   @keyloop
+         bit   CLEARKBD
+         sta   gLastKeyPressed
+         ldx   #0
+-        ldy   kSelectWorldKeys, x
+         beq   @keyloop              ; key has no associated handler, so ignore it
+         cpy   gLastKeyPressed
+         beq   @dispatch
+         inx
+         bne   -                     ; always branches
+@dispatch
+         lda   kSelectWorldKeyHandlersLo, x
+         sta   @j+1
+         lda   kSelectWorldKeyHandlersHi, x
+         sta   @j+2
+@j       jsr   $FDFD                 ; SMC
+         beq   SelectWorldEventLoop
+         rts
+
+SelectWorldEventReturn
+         jsr   Home
+         lda   selectedworld
+         sta   gWorldID
+         jsr   MaybeLoadWorldFromDisk
+         bcs   SelectWorldEventEsc
+         jsr   LoadProgressFromMemory
+                                     ; A = next puzzle ID
+@Play
+         sta   gPuzzleID
+         ldx   gWorldID
+         lda   kWorldLeftMargins, x
+         sta   GlobalLeftMargin
+         lda   kPuzzleWidths, x
+         jsr   InitPuzzleStorage
+         jsr   InitPuzzleSound
+         ldx   gPuzzleID
+         jsr   LoadPuzzleFromMemory
+         lda   #0
+         sta   gSelectedLogicalColumn
+         jsr   DrawPuzzleChrome
+         jsr   DrawPuzzle
+         jsr   AnimatePuzzleIntoPlace
+         jsr   DrawColumnSelectionIndicator
+
+         jsr   PlayEventLoop
+         cpx   #kCompletedPuzzle
+         bne   +
+         jsr   AnimatePuzzleCompleted
+         ldx   gPuzzleID
+         jsr   MarkPuzzleCompleted
+                                     ; A = next puzzle ID
+                                     ; X = number of puzzles completed
+         jsr   MaybeShowInterstitial
+         bcc   @Play
+         bcs   @DonePlay
++
+         cpx   #kRequestedSkip
+         bne   +
+         ldx   gPuzzleID
+         jsr   MarkPuzzleSkipped
+         jmp   @Play
++
+         cpx   #kRequestedRestart
+         bne   @DonePlay
+         jsr   Home
+         lda   gPuzzleID
+         jmp   @Play
+@DonePlay
+         ldx   #kStayOnSelectWorld
+         sec
+         rts
+
+SelectWorldEventEsc
+         ldx   #kReturnToMainMenu
+         sec
+         rts
+
+SelectWorldEventUp
+         jsr   RedrawPreviouslySelectedWorld
+         ldx   selectedworld
+         bne   +
+         ldx   #12
++        dex
+         stx   selectedworld
+         jsr   DrawNewlySelectedWorld
+         ldx   #kStayOnSelectWorld
+         clc
+         rts
+
+SelectWorldEventDown
+         jsr   RedrawPreviouslySelectedWorld
+         ldx   selectedworld
+         cpx   #11
+         bne   +
+         ldx   #$FF
++        inx
+         stx   selectedworld
+         jsr   DrawNewlySelectedWorld
+         ldx   #kStayOnSelectWorld
+         clc
+         rts
+
+DrawSelectWorldText
          jsr   Home
          jsr   UpdateWorldPercents
          +LDADDR kWorldDescriptions
@@ -51,57 +191,8 @@ SelectWorld
          lda   counter
          cmp   #12
          bcc   -
-
          +PRINT_AT sWorldHelp, 23, 0
-
-         bit   CLEARKBD
-@selectWorldLoop
-         lda   KBD
-         bpl   @selectWorldLoop
-         bit   CLEARKBD
-         and   #$7F
-         cmp   #$0B                  ; up arrow
-         beq   @eventUpArrow
-         cmp   #$0A                  ; down arrow
-         beq   @eventDownArrow
-         cmp   #$08                  ; left arrow
-         beq   @eventLeftArrow
-         cmp   #$15                  ; right arrow
-         beq   @eventRightArrow
-         cmp   #$0D
-         beq   @eventReturn
-         cmp   #$1B
-         beq   @eventEsc
          rts
-@eventReturn
-         jsr   Home
-         lda   selectedworld
-         clc
-         rts
-@eventEsc
-         sec
-         rts
-@eventLeftArrow
-@eventUpArrow
-         jsr   RedrawPreviouslySelectedWorld
-         ldx   selectedworld
-         bne   +
-         ldx   #12
-+        dex
-         stx   selectedworld
-         jsr   DrawNewlySelectedWorld
-         jmp   @selectWorldLoop
-@eventRightArrow
-@eventDownArrow
-         jsr   RedrawPreviouslySelectedWorld
-         ldx   selectedworld
-         cpx   #11
-         bne   +
-         ldx   #$FF
-+        inx
-         stx   selectedworld
-         jsr   DrawNewlySelectedWorld
-         jmp   @selectWorldLoop
 
 RedrawPreviouslySelectedWorld
          lda   selectedworld

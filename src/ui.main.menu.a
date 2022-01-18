@@ -9,8 +9,7 @@
 
 ; Codes returned by event handlers
 kStayOnMainMenu = 0
-kRequestedQuit = 1
-kStartPlaying = 2
+kQuit = 1
 
 kMainMenuKeys                        ; must keep in sync with kMainMenuKeyHandlersLo/Hi arrays
                                      ; except for last byte ($00) which doesn't need an associated handler
@@ -61,10 +60,8 @@ kMainMenuKeyHandlersHi
 ;          (will happen if animated title screen runs to completion)
 ;        C set if full screen clear & redraw is required
 ;          (will happen if key is pressed during title screen, or
-;          if user returns to main menu from play or any other screen)
-; out:   C clear if user selected a world to play, and
-;          A = world ID
-;        C set if user selected quit
+;          if user returns to main menu from any other screen)
+; out:   Z = 0
 ;------------------------------------------------------------------------------
 MainMenuEventLoop
          bcc   +
@@ -82,11 +79,11 @@ MainMenuEventLoop
          ldx   #0
 @keyloop
          ldy   kMainMenuKeys, x
-         beq   @musicloop
+         beq   @musicloop            ; key has no associated handler, so ignore it
          cpy   gLastKeyPressed
          beq   @dispatch
          inx
-         bne   @keyloop
+         bne   @keyloop              ; always branches
 @dispatch
          lda   kMainMenuKeyHandlersLo, x
          sta   @j+1
@@ -97,20 +94,18 @@ MainMenuEventLoop
          rts
 
 MainMenuEventReturn
-         jsr   SelectWorld
-         bcs   +                     ; in next event handler
-         ldx   #kStartPlaying        ; Z=0 so caller will exit main menu event loop
-                                     ; C=0 so grand-caller will start playing
-                                     ; A=world ID (from SelectWorld)
-         rts
+         sec                         ; C=1 to trigger full redraw of 'select world' page
+         jsr   SelectWorldEventLoop
+         jmp   StayOnMainMenuWithFullRefresh
 
 MainMenuEventD
          jsr   RunDemo
-         bne   +                     ; always branches
+         jmp   StayOnMainMenuWithFullRefresh
 
 MainMenuEventC
          jsr   AboutPage
-+        ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
+StayOnMainMenuWithFullRefresh
+         ldx   #kStayOnMainMenu      ; Z=1 so caller will stay in main menu event loop
          sec                         ; C=1 so caller will do a full screen refresh
          rts
 
@@ -121,8 +116,7 @@ MainMenuEventS
          rts
 
 MainMenuEventQ
-         ldx   #kRequestedQuit       ; Z=0 so caller will exit main menu event loop
-         sec                         ; C=1 so grand-caller will call MLI quit
+         ldx   #kQuit                ; Z=0 so caller will exit main menu event loop
          rts
 
 DrawMainMenuTitle

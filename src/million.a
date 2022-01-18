@@ -23,64 +23,9 @@ Start                                ; X = Mockingboard slot (from init)
          jsr   InitSound
          jsr   LoadProgressFromDisk
          jsr   TitlePage
-@GoToMainMenu
-         ; C is set now if main menu requires full redraw
-         ; (e.g. title sequence ended prematurely, or we're
-         ; returning from another screen)
          jsr   MainMenuEventLoop
-                                     ; A = world ID
-         bcc   +
          jsr   EnableAccelerator
          jmp   Quit
-+
-         sta   gWorldID
-         jsr   MaybeLoadWorldFromDisk
-         bcs   @GoToMainMenu
-         jsr   LoadProgressFromMemory
-                                     ; A = next puzzle ID
-@Play
-         sta   gPuzzleID
-         ldx   gWorldID
-         lda   kWorldLeftMargins, x
-         sta   GlobalLeftMargin
-         lda   kPuzzleWidths, x
-         jsr   InitPuzzleStorage
-         jsr   InitPuzzleSound
-         ldx   gPuzzleID
-         jsr   LoadPuzzleFromMemory
-         lda   #0
-         sta   gSelectedLogicalColumn
-         jsr   DrawPuzzleChrome
-         jsr   DrawPuzzle
-         jsr   AnimatePuzzleIntoPlace
-         jsr   DrawColumnSelectionIndicator
-
-         jsr   PlayEventLoop
-         cpx   #kCompletedPuzzle
-         bne   +
-         jsr   AnimatePuzzleCompleted
-         ldx   gPuzzleID
-         jsr   MarkPuzzleCompleted
-                                     ; A = next puzzle ID
-                                     ; X = number of puzzles completed
-         jsr   MaybeShowInterstitial
-         bcc   @Play
-         bcs   @GoToMainMenu
-+
-         cpx   #kRequestedSkip
-         bne   +
-         ldx   gPuzzleID
-         jsr   MarkPuzzleSkipped
-         jmp   @Play
-+
-         cpx   #kRequestedRestart
-         bne   +
-         jsr   Home
-         lda   gPuzzleID
-         jmp   @Play
-+
-         sec                         ; C=1 triggers full redraw
-         bcs   @GoToMainMenu
 
          !source "src/ui.strings.a"
          !source "src/ui.title.a"

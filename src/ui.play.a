@@ -16,7 +16,7 @@ kKeepPlaying = 0                     ; This code is checked with BEQ/BNE, so it 
 kCompletedPuzzle = 1                 ; All non-zero codes will exit play event loop
 kRequestedRestart = 2                ;   with the code in X so caller knows what happened
 kRequestedSkip = 3
-kReturnToMainMenu = 4
+kReturnToSelectWorld = 4
 
 gSelectedLogicalColumn
          !byte 0
@@ -125,7 +125,7 @@ PlayEventLoop
          rts
 
 PlayEventEsc
-         ldx   #kReturnToMainMenu    ; caller will exit play event loop
+         ldx   #kReturnToSelectWorld ; caller will exit play event loop
          rts
 
 PlayEventCtrlR

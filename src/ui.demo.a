@@ -181,7 +181,7 @@ DemoCode
 ; run self-running demo until keypress or completion
 ;
 ; in:    none
-; out:   C = 1
+; out:   Z = 0
 ;        all other registers & flags clobbered
 ;------------------------------------------------------------------------------
 RunDemo
