@@ -1,5 +1,5 @@
 ;license:MIT
-;(c) 2020 by 4am
+;(c) 2020-2 by 4am
 ;
 
 sTitleLine1
@@ -13,7 +13,7 @@ sTitleLine3
          !raw "LETTERS"
 sVersion
          !byte 4
-         !raw  "V0.6"
+         !raw  "V1.0"
 sOneSpace
          !byte 1
          !raw  " "
@@ -152,7 +152,7 @@ sHelpSound
          !raw  "CTRL-S......................TOGGLE SOUND"
 sHelpQuit
          !byte 40
-         !raw  "ESC............................MAIN MENU"
+         !raw  "ESC.................BACK TO SELECT LEVEL"
 sProgress10
          !byte 25
          !raw "10% COMPLETE! KEEP IT UP!"

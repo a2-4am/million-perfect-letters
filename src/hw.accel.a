@@ -6,12 +6,6 @@
 ;
 ; Forked from NORMFAST Release 6 (see changelog below)
 ;
-; For Total Replay, we split the machine identification code from
-; the (de)acceleration code, because we can do the ID part once
-; at program startup (when ROM is easily available), then
-; (de)accelerate repeatedly from the language card (when ROM
-; is switched out).
-;
 ; --------------------------------------------------------------
 ;
 ; Original changelog and documentation:
