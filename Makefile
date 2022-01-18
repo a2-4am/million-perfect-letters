@@ -30,12 +30,14 @@ asm:
 	$(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "res/PREFS" >>build/log
 	$(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "build/MILLION.SYSTEM" >>build/log
 	for f in res/levels/*; do $(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "$$f" >>build/log; done
+	bin/po2do.py build/ build/
+	rm "$(BUILDDISK)".po
 
 clean:
 	rm -rf build/
 
 mount:
-	open "$(BUILDDISK)".po
+	open "$(BUILDDISK)".dsk
 
 all: clean asm mount
 
