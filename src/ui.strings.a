@@ -13,7 +13,7 @@ sTitleLine3
          !raw "LETTERS"
 sVersion
          !byte 4
-         !raw  "V1.0"
+         !raw  "V1.1"
 sOneSpace
          !byte 1
          !raw  " "
@@ -89,8 +89,8 @@ sWorldHelp
          !byte 40
          !raw "ARROWS TO SELECT, RETURN TO PLAY, OR ESC"
 sAboutWritten
-         !byte 21
-         !raw "COPYRIGHT 2022 BY 4AM"
+         !byte 26
+         !raw "COPYRIGHT 2022-2024 BY 4AM"
 sAboutTested
          !byte 21
          !raw "PLAYTESTED BY OPTION8"

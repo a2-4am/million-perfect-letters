@@ -27,6 +27,9 @@ Start                                ; X = Mockingboard slot (from init)
          jsr   EnableAccelerator
          jmp   Quit
 
+FORWARD_DECRUNCHING = 1
+SHOW_PROGRESS_DURING_DECRUNCH = 0
+         !source "src/exodecrunch.a"
          !source "src/ui.strings.a"
          !source "src/ui.title.a"
          !source "src/ui.main.menu.a"
@@ -40,6 +43,8 @@ Start                                ; X = Mockingboard slot (from init)
          !source "src/ui.message.a"
          !source "src/ui.common.a"
          !source "src/puzzle.a"
+data_index
+         !source "src/data.index.a"
          !source "src/storage.a"
          !source "src/prefs.a"
          !source "src/glue.sound.a"
@@ -60,5 +65,6 @@ M_vi6    !bin    "res/M.VI6"
 M_ERROR  !bin    "res/M.ERROR"
          !source "src/electric.duet.a"
          !source "src/mockingduet.a"
+compressed_data
 }
 LastMover

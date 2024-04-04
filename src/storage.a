@@ -30,8 +30,6 @@ kPuzzleWidths                        ; width in letters of the puzzles in each w
          !byte 4,5,6,7
          !byte 4,5,6,7
 
-progressRefNum                       ; [byte][private]
-         !byte $FF                   ; 0xFF means 'no progress file open'
 checksum = $FB
 packedvalue = $FC
 bitcount = $FD
@@ -47,28 +45,63 @@ bitcount = $FD
 ;        other registers/flags clobbered
 ;------------------------------------------------------------------------------
 MaybeLoadWorldFromDisk
-         clc
-         adc   #$41
          cmp   WorldFileLoaded
          bne   +
 @success clc
          rts
 +        sta   WorldFileLoaded
-         jsr   LoadFile1Shot
-         !word @filename             ; address of filename
-         !word WORLDDATA             ; load address
-         !word $2F00                 ; maximum length
-         !word WORLDFILEBUFFER       ; address of ProDOS file buffer
+         jsr   $ff58
+         jsr   OpenFile
+         !word @filename
+         !word WORLDFILEBUFFER
          bcs   @failure
+         sta   @refnum
+
+         lda   WorldFileLoaded
+         asl
+         asl
+         tax
+         lda   data_index, x
+         ldy   data_index+1, x
+         tax
+         lda   @refnum
+         jsr   SeekFile
+
+         lda   WorldFileLoaded
+         asl
+         asl
+         tax
+         lda   data_index+2, x
+         sta   @readlen
+         lda   data_index+3, x
+         sta   @readlen+1
+         jsr   ReadFile
+@refnum  !byte $FD                   ; SMC
+         !word compressed_data       ; data address
+@readlen !word $FDFD                 ; data length
+
+         php
+         lda   @refnum
+         jsr   CloseFile
+         plp
+         bcs   @failure
+
+         lda   #<compressed_data
+         sta   get_crunched_byte+1
+         lda   #>compressed_data
+         sta   get_crunched_byte+2
+         jsr   decrunch
          jsr   PreParseWorldData
          cpx   #100
          beq   @success
-@failure lda   #$FF
+@failure lda   WorldFileLoaded
+         jsr   CloseFile             ; ignore error, if any
+         lda   #$FF
          sta   WorldFileLoaded
          sec
          rts
 @filename
-         !byte 1                     ; length
+         !text 4,"DATA"
 WorldFileLoaded
          !byte $FF                   ; no file
 
@@ -124,25 +157,17 @@ PreParseWorldData
 ; see comments in MarkPuzzleCompleted for file format
 ;
 ; in:    none
-; out:   C clear if file was read successfully, and
-;          progressRefNum contains ProDOS file reference number (file is left
-;          open)
-;        C set if error occurred, and
-;          progressRefNum = 0xFF
+; out:   C clear if file was read successfully
+;        C set if error occurred
 ;------------------------------------------------------------------------------
 LoadProgressFromDisk
-         jsr   OpenFile
-         !word @progressFile
-         !word PROGRESSFILEBUFFER
-         bcs   +
-         sta   @refnum
-         sta   progressRefNum
-         jsr   ReadFile
-@refnum  !byte $FD                   ; SMC
+         jsr   LoadFile1Shot
+         !word progressFile
          !word PACKEDPROGRESS        ; data address
          !word $00C0                 ; data length
-+        rts
-@progressFile
+         !word PROGRESSFILEBUFFER
+         rts
+progressFile
          !byte 8
          !raw "PROGRESS"
 
@@ -374,14 +399,13 @@ MarkPuzzleSkipped
          eor   checksum
          iny
          sta   ($FE), y
-         lda   progressRefNum
-         jsr   SetMarkTo0
-         lda   progressRefNum
-         jsr   WriteFile
+         jsr   SaveFile1Shot
+         !word progressFile
+         !byte 4
+         !word 0
          !word PACKEDPROGRESS
          !word $00C0
-         lda   progressRefNum
-         jsr   FlushFile
+         !word PROGRESSFILEBUFFER
          pla
          tax
          pla
@@ -411,4 +435,11 @@ FindPackedProgress
          sta   $FE
          bcc   +
          inc   $FF
++        rts
+
+get_crunched_byte
+         lda   compressed_data
+         inc   get_crunched_byte+1
+         bne   +
+         inc   get_crunched_byte+2
 +        rts

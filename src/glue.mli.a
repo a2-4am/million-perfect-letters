@@ -10,7 +10,7 @@
 ; - OpenFile
 ; - ReadFile
 ; - WriteFile
-; - SetMarkTo0
+; - SeekFile
 ; - FlushFile
 ; - CloseFile
 ; - Quit
@@ -256,22 +256,26 @@ WriteFile
 +        rts
 
 ;------------------------------------------------------------------------------
-; SetMarkTo0
-; set file position within an open file to the beginning of the file
+; SeekFile
+; set file position within an open file
 ;
 ; in:    A = file reference number
-; out:   if C set, save failed and A = error code
-;        if C clear, write succeeded and A = the same file reference
+;        X = seek offset (lo)
+;        Y = seek offset (hi)
+;        note: this routine can not seek beyond 65535 bytes even though
+;              ProDOS can do that
+; out:   if C set, seek failed and A = error code
+;        if C clear, seek succeeded and A = the same file reference
 ;          number that was passed in
 ;        Y clobbered
 ;        X preserved
 ;        other flags clobbered
 ;------------------------------------------------------------------------------
-SetMarkTo0
+SeekFile
          sta   mliparam+1            ; file reference number
+         stx   mliparam+2
+         sty   mliparam+3
          lda   #0
-         sta   mliparam+2
-         sta   mliparam+3
          sta   mliparam+4
          +LDADDR CMD_SETMARK
          bne   mli                   ; always branches

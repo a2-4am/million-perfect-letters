@@ -19,26 +19,46 @@ ACME=acme
 # version 1.4.0 or later
 CADIUS=cadius
 
-BUILDDISK=build/million
+EXOMIZER=exomizer mem -lnone -P23 -f -q
 
-asm:
-	mkdir -p build
-	$(ACME) -r build/million.lst src/million.a 2>build/log
-	cp res/work.po "$(BUILDDISK)".po >>build/log
-	cp res/_FileInformation.txt build/ >>build/log
-	$(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "res/PROGRESS" >>build/log
-	$(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "res/PREFS" >>build/log
-	$(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "build/MILLION.SYSTEM" >>build/log
-	for f in res/levels/*; do $(CADIUS) ADDFILE "${BUILDDISK}".po "/MILLION/" "$$f" >>build/log; done
-	bin/po2do.py build/ build/
-	rm "$(BUILDDISK)".po
+BUILDDISK=build/million.po
+DISKVOLUME=MILLION
+
+asm: dirs
+	$(ACME) -r build/million.lst src/million.a
+
+compress: dirs
+	for f in res/levels/*; do \
+		$(EXOMIZER) "$$f"@0x9000 -o build/LEVEL."$$(basename $$f)"; \
+	done
+	rm -f src/data.index.a
+	rm -f res/DATA
+	touch res/DATA
+	for f in build/LEVEL.*; do \
+		echo "!word $$(wc -c < res/DATA)" >> src/data.index.a ;\
+		echo "!word $$(wc -c < $$f)" >> src/data.index.a; \
+		cat "$$f" >> res/DATA; \
+	done
+
+dsk: asm
+	$(CADIUS) CREATEVOLUME "$(BUILDDISK)" "$(DISKVOLUME)" 140KB -C
+	cp res/_FileInformation.txt build/
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "res/PROGRESS"
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "res/PREFS"
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "res/DATA"
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "res/CLOCK.SYSTEM#FF0000"
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "build/MILLION.SYSTEM"
+	$(CADIUS) ADDFILE "${BUILDDISK}" "/$(DISKVOLUME)/" "res/PRODOS#FF0000"
 
 clean:
 	rm -rf build/
 
-mount:
-	open "$(BUILDDISK)".dsk
+dirs:
+	mkdir -p build
 
-all: clean asm mount
+mount:
+	open "$(BUILDDISK)"
+
+all: clean dsk mount
 
 al: all

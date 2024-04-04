@@ -10,11 +10,10 @@
 ; 0400..07FF - text page (kept black for switching)
 ; 0800..19FF - scroll routines (generated at startup)
 ; 1A00..1BFF - HGR lookup tables
-; 1C00..1FFF - ProDOS file buffer for puzzle files
+; 1C00..1FFF - ProDOS file buffer
 ; 2000..3FFF - hi-res page
 ; 4000+      - program code (relocated to here at startup)
 ; ...unused...
-; 8A00..8DFF - ProDOS file buffer for PROGRESS file
 ; 8E10..8F37 - progress of puzzles in current world
 ; 8F38..8FFF - address lookup table for puzzles within following world data
 ; 9000..BEB3 - world data (read from disk)
@@ -68,9 +67,8 @@ GENSCROLLUP  = $1100      ; 0x0900 bytes
 HGRLO        = $1A00      ; 0x00C0 bytes
 HGRHI        = $1B00      ; 0x00C0 bytes
 WORLDFILEBUFFER = $1C00   ; 0x0400 bytes
-PREFSFILEBUFFER = $1C00   ; 0x0400 bytes (note: same as WORLDFILEBUFFER)
-
-PROGRESSFILEBUFFER = $8A00; 0x0400 bytes
+PREFSFILEBUFFER = WORLDFILEBUFFER
+PROGRESSFILEBUFFER = PREFSFILEBUFFER
 PACKEDPROGRESS = $8E10    ; 0x00C0 bytes
 PROGRESS     = $8ED0      ; 0x0068 bytes
 PUZZLELO     = $8F38      ; 0x0064 bytes
