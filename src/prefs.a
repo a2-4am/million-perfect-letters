@@ -4,7 +4,7 @@
 
 PREFSFILE !byte prefs_e-prefs_b
 prefs_b
-          !text "PREFS"
+          !text "MPL.PREFS"
 prefs_e
 
 PREFSVER !byte $31

@@ -101,7 +101,7 @@ MaybeLoadWorldFromDisk
          sec
          rts
 @filename
-         !text 4,"DATA"
+         !raw  8,"MPL.DATA"
 WorldFileLoaded
          !byte $FF                   ; no file
 
@@ -168,8 +168,7 @@ LoadProgressFromDisk
          !word PROGRESSFILEBUFFER
          rts
 progressFile
-         !byte 8
-         !raw "PROGRESS"
+         !raw  12,"MPL.PROGRESS"
 
 ;------------------------------------------------------------------------------
 ; LoadProgressFromMemory

@@ -13,7 +13,7 @@ sTitleLine3
          !raw "LETTERS"
 sVersion
          !byte 4
-         !raw  "V1.1"
+         !raw  "V1.2"
 sOneSpace
          !byte 1
          !raw  " "
